@@ -1,10 +1,11 @@
 // === Paleta de cores ===
-$bg: #FCD269;         // fundo
-$box: #E88A25;        // caixas de pergunta
-$label-active: #D27C2C; // label quando sobe
-$link-color: #341405; // "Esqueceu senha" e texto do botão
-$btn-bg: #F9E14B;     // botão fundo
-$btn-shadow: #E88A25; // sombra do botão
+$bg: #fcd269;            // fundo
+$box: #e88a25;           // campo
+$label-active: #c86e1f;  // label quando sobe
+$text-dark: #341405;     // texto escuro
+$btn-bg: #f9e14b;        // botão fundo
+$btn-shadow: #e88a25;    // sombra do botão
+$white: #fff;
 
 // === Layout principal ===
 .login-container {
@@ -13,43 +14,54 @@ $btn-shadow: #E88A25; // sombra do botão
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: $bg;
+  background: linear-gradient(180deg, #fcd269 0%, #f9e14b 100%);
   padding: 2rem;
+  font-family: "Poppins", sans-serif;
+  animation: fadeIn 0.6s ease;
 
   h2 {
-    color: $link-color;
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
+    color: $text-dark;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    letter-spacing: 1px;
   }
 
   form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.6rem;
     width: 100%;
-    max-width: 400px;
+    max-width: 360px;
   }
 }
 
-// === Caixa de entrada (input com label flutuante) ===
+// === Input com label flutuante ===
 label {
   position: relative;
   display: block;
   width: 100%;
   background-color: $box;
-  border-radius: 10px;
-  padding: 1.2rem 1rem 0.6rem;
-  color: #fff;
-  font-weight: 500;
+  border-radius: 12px;
+  padding: 1.2rem 1rem 0.8rem;
+  color: $white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+
+  &:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
 
   input {
     width: 100%;
     background: transparent;
     border: none;
     outline: none;
-    color: #fff;
+    color: $white;
     font-size: 1rem;
-    margin-top: 0.4rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
 
     &::placeholder {
       color: transparent;
@@ -57,28 +69,30 @@ label {
 
     &:focus + span,
     &:not(:placeholder-shown) + span {
-      transform: translateY(-1.2rem) scale(0.9);
+      transform: translateY(-1.3rem) scale(0.9);
       color: $label-active;
+      font-weight: 600;
     }
   }
 
-  // Label que "sobe" (usamos <span> dentro da <label>)
   span {
     position: absolute;
     left: 1rem;
     top: 1.2rem;
     transition: all 0.2s ease;
     pointer-events: none;
-    color: #341405;
+    color: rgba($text-dark, 0.9);
   }
 }
 
-// === Link "Esqueceu senha" ===
+// === Link "Esqueceu sua senha?" ===
 h3 {
-  color: $link-color;
-  margin-top: 0.8rem;
+  color: $text-dark;
+  margin-top: 1.2rem;
   text-align: center;
+  font-size: 0.95rem;
   cursor: pointer;
+  font-weight: 500;
 
   u {
     text-decoration: underline;
@@ -86,21 +100,23 @@ h3 {
 
   &:hover {
     opacity: 0.8;
+    text-decoration-thickness: 2px;
   }
 }
 
 // === Botão ===
 button {
-  background-color: $btn-bg;
-  color: $link-color;
+  background: $btn-bg;
+  color: $text-dark;
   font-weight: 700;
   font-size: 1.1rem;
   border: none;
-  border-radius: 10px;
-  padding: 0.8rem;
+  border-radius: 12px;
+  padding: 0.9rem;
   cursor: pointer;
   box-shadow: 0 6px 0 $btn-shadow;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.15s ease;
+  letter-spacing: 0.5px;
 
   &:active {
     transform: translateY(3px);
@@ -108,6 +124,18 @@ button {
   }
 
   &:hover {
-    filter: brightness(0.98);
+    filter: brightness(1.05);
+  }
+}
+
+// === Animação de entrada ===
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

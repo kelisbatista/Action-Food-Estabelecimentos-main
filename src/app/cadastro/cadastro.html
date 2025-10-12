@@ -1,1 +1,47 @@
-<p>cadastro works!</p>
+<div class="cadastro-container">
+  <h2>Cadastro do Estabelecimento</h2>
+
+  <form (ngSubmit)="fazerCadastro()">
+    <label>
+      <input type="text" [(ngModel)]="nome" name="nome" placeholder=" " required />
+      <span>Nome do Estabelecimento</span>
+    </label>
+
+    <label>
+      <input type="email" [(ngModel)]="email" name="email" placeholder=" " required />
+      <span>Email</span>
+    </label>
+
+    <label>
+      <input type="password" [(ngModel)]="senha" name="senha" placeholder=" " required />
+      <span>Senha</span>
+    </label>
+
+    <label>
+      <input type="tel" [(ngModel)]="telefone" name="telefone" placeholder=" " required />
+      <span>Telefone</span>
+    </label>
+
+    <label>
+      <input type="text" [(ngModel)]="endereco" name="endereco" placeholder=" " required />
+      <span>Endereço</span>
+    </label>
+
+    <label>
+      <input type="text" [(ngModel)]="categoria" name="categoria" placeholder=" " required />
+      <span>Categoria</span>
+    </label>
+
+    <label>
+      <input type="text" [(ngModel)]="descricao" name="descricao" placeholder=" " required />
+      <span>Descrição</span>
+    </label>
+
+    <label>
+      <input type="text" [(ngModel)]="logoUrl" name="logoUrl" placeholder=" " />
+      <span>Logo (URL)</span>
+    </label>
+
+    <button type="submit">Cadastrar</button>
+  </form>
+</div>
