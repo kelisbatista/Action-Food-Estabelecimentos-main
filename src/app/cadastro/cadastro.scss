@@ -33,6 +33,19 @@ $white: #fff;
     gap: 1.2rem;
     width: 100%;
     max-width: 380px;
+    background: rgba($white, 0.1);
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+
+    // centraliza o conteúdo do form (inclusive o botão)
+    align-items: center;
+
+    // garante espaçamento visual uniforme
+    label,
+    button {
+      width: 100%;
+    }
   }
 }
 
@@ -40,7 +53,6 @@ $white: #fff;
 label {
   position: relative;
   display: block;
-  width: 100%;
   background-color: $box;
   border-radius: 12px;
   padding: 1.2rem 1rem 0.8rem;
@@ -93,11 +105,14 @@ button {
   font-size: 1.1rem;
   border: none;
   border-radius: 12px;
-  padding: 0.9rem;
+  padding: 0.9rem 1.5rem;
   cursor: pointer;
   box-shadow: 0 6px 0 $btn-shadow;
   transition: all 0.15s ease;
   letter-spacing: 0.5px;
+  width: fit-content;        // mantém o tamanho natural
+  align-self: center;        // centraliza dentro do form
+  margin-top: 1rem;          // separa do último campo
 
   &:active {
     transform: translateY(3px);

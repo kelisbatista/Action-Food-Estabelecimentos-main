@@ -1,10 +1,10 @@
 // === Paleta de cores ===
-$bg: #fcd269;            // fundo
-$box: #e88a25;           // campo
-$label-active: #c86e1f;  // label quando sobe
-$text-dark: #341405;     // texto escuro
-$btn-bg: #f9e14b;        // botão fundo
-$btn-shadow: #e88a25;    // sombra do botão
+$bg: #fcd269;
+$box: #e88a25;
+$label-active: #c86e1f;
+$text-dark: #341405;
+$btn-bg: #f9e14b;
+$btn-shadow: #e88a25;
 $white: #fff;
 
 // === Layout principal ===
@@ -25,14 +25,32 @@ $white: #fff;
     font-weight: 700;
     margin-bottom: 2rem;
     letter-spacing: 1px;
+    text-align: center;
   }
-
+h3 {
+    color: $text-dark;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+    text-align: center;
+  }
   form {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
     width: 100%;
     max-width: 360px;
+    align-items: center;       // centraliza inputs e botão horizontalmente
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+    background: rgba($white, 0.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+
+    label,
+    button {
+      width: 100%;            // mantém largura consistente
+    }
   }
 }
 
@@ -40,7 +58,6 @@ $white: #fff;
 label {
   position: relative;
   display: block;
-  width: 100%;
   background-color: $box;
   border-radius: 12px;
   padding: 1.2rem 1rem 0.8rem;
@@ -85,6 +102,33 @@ label {
   }
 }
 
+// === Botão ===
+button {
+  background: $btn-bg;
+  color: $text-dark;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 12px;
+  padding: 0.9rem 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 6px 0 $btn-shadow;
+  transition: all 0.15s ease;
+  letter-spacing: 0.5px;
+  width: fit-content;        // mantém tamanho natural
+  align-self: center;        // centraliza dentro do form
+  margin-top: 1rem;
+
+  &:active {
+    transform: translateY(3px);
+    box-shadow: 0 3px 0 $btn-shadow;
+  }
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+
 // === Link "Esqueceu sua senha?" ===
 h3 {
   color: $text-dark;
@@ -101,30 +145,6 @@ h3 {
   &:hover {
     opacity: 0.8;
     text-decoration-thickness: 2px;
-  }
-}
-
-// === Botão ===
-button {
-  background: $btn-bg;
-  color: $text-dark;
-  font-weight: 700;
-  font-size: 1.1rem;
-  border: none;
-  border-radius: 12px;
-  padding: 0.9rem;
-  cursor: pointer;
-  box-shadow: 0 6px 0 $btn-shadow;
-  transition: all 0.15s ease;
-  letter-spacing: 0.5px;
-
-  &:active {
-    transform: translateY(3px);
-    box-shadow: 0 3px 0 $btn-shadow;
-  }
-
-  &:hover {
-    filter: brightness(1.05);
   }
 }
 
