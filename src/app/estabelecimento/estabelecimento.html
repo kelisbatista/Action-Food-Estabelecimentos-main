@@ -1,1 +1,70 @@
 <p>estabelecimento works!</p>
+
+//CODIGO NOVOOOO
+
+<div class="estabelecimento-container">
+  
+  <section class="profile">
+    <div class="logo-container">
+      <img [src]="PerfilEstabelecimento.logoUrl" alt="Logo do Estabelecimento" class="estabelecimento-logo">
+    </div>
+    
+    <div class="info-container">
+      <h1>{{PerfilEstabelecimento.name }}</h1>
+      <p><strong>Endereço:</strong> {{ PerfilEstabelecimento.address }}</p>
+      <p><strong>Telefone:</strong> {{ PerfilEstabelecimento.phone }}</p>
+      <p><strong>E-mail:</strong> {{ PerfilEstabelecimento.email }}</p>
+      <p class="description">{{ PerfilEstabelecimento.description }}</p>
+    </div>
+  </section>
+
+  <hr>
+
+  <section class="Horarios">
+    <h2>Horário de Funcionamento</h2>
+    <ul>
+      <li *ngFor="let horario of Horarios">
+        <span class="dia">{{ horario.day }}:</span>
+        <span *ngIf="!horario.isClosed">{{ horario.open }} - {{ horario.closed }}</span>
+        <span *ngIf="horario.isClosed" class="closed">Fechado</span>
+      </li>
+    </ul>
+  </section>
+
+  <hr>
+
+  <section class="Produtos">
+    <h2>Nossos Produtos</h2>
+    <div class="produtos-grid">
+      <div class="produto-card" *ngFor="let produto of Produtos">
+        <img [src]="produto.imageUrl" [alt]="produto.name" class="produto-image">
+        <div class="produto-info">
+          <h3>{{ produto.name }}</h3>
+          <p class="descricao">{{ produto.description }}</p>
+          <p class="valor">R$ {{ produto.price | number:'1.2-2' }}</p>
+          <span class="active-status" *ngIf="!produto.isActive">Indisponível</span>
+          <button *ngIf="produto.isActive">Adicionar ao Pedido</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <section class="Pedidos">
+    <h2>Últimos Pedidos</h2>
+    <div class="pedido-list">
+      <div class="pedido-item" *ngFor="let pedido of pedidos">
+        <div class="pedido-header">
+          <span>Pedido #{{ pedido.id }}</span>
+          <span><strong>Cliente:</strong> {{ pedido.customerName }}</span>
+        </div>
+        <div class="pedido-details">
+          <p><strong>Status:</strong> <span [ngClass]="pedido.status.toLowerCase()">{{ pedido.status }}</span></p>
+          <p><strong>Total:</strong> R$ {{ pedido.total | number:'1.2-2' }}</p>
+          <p class="date">Criado em: {{ pedido.createdAt | date:'short' }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
