@@ -1,28 +1,24 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { login } from '../services/auth';
 
 @Component({
   selector: 'app-login',
-  imports: [
-    CommonModule,
-     FormsModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
-  styleUrl: './login.scss'
+  styleUrls: ['./login.scss']
 })
-export class Login {
-fazerlogin() {
-throw new Error('Method not implemented.');
-}
+export class LoginComponent {
   email = '';
-  senha = '';    
+  senha = '';
 
-    fazerLogin(){
-      if(this.email === 'admin@teste.com' && this.senha === '1234'){
-        alert('Login realizado com sucesso!');
-      } else {
-        alert('Email ou senha incorretos!');
-      }
+  async fazerLogin() {
+    try {
+      const user = await login(this.email, this.senha);
+      alert('Login realizado com sucesso: ' + user.email);
+    } catch (err: any) {
+      alert('Erro ao fazer login: ' + err.message);
     }
+  }
 }
