@@ -5,21 +5,7 @@ import { RouterModule } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 
-@Component({
-  selector: 'app-estabelecimento',
-  imports: [CommonModule, FormsModule, RouterModule, DatePipe],
-  templateUrl: './estabelecimento.html',
-  styleUrl: './estabelecimento.scss'
-})
-export class Estabelecimento {
-PerfilEstabelecimento: any;
-Horarios: any;
-Produtos: any;
-pedidos: any;
-estabelecimentoProfile: any;
 
-}
-//profile estabelecimentos
 interface EstablishmentProfile {
   name: string;
   address: string;
@@ -55,24 +41,31 @@ interface Orders {
   isActive: boolean;
   imageUrl: string;
   quantity: number;
-  createdAt: Date | FieldValue; 
-  customerName: string; 
-  items: { name: string, quantity: number, price: number }[]; 
-  total: number; 
+  createdAt: Date | FieldValue;
+  customerName: string;
+  items: { name: string, quantity: number, price: number }[];
+  total: number;
   status: 'PENDENTE' | 'CONFIRMADO' | 'PREPARANDO' | 'CONCLUÍDO' | 'CANCELADO';
-  paymentStatus: 'AGUARDANDO' | 'APROVADO' | 'RECUSADO'; 
+  paymentStatus: 'AGUARDANDO' | 'APROVADO' | 'RECUSADO';
 }
-  
+
 
 @Component({
-  selector: 'app-root',
-  template: `<div>App Component Template</div>`,
-  // styleUrls: ['./app.component.scss']
+  selector: 'app-estabelecimento',
+  imports: [CommonModule, FormsModule, RouterModule, DatePipe],
+  templateUrl: './estabelecimento.html',
+  standalone: true,
+  styleUrls:['./estabelecimento.scss'],
 })
 
-export class App implements OnInit {
+export class Estabelecimento implements OnInit {
+[x: string]: any;
+  public saveProfile(): void {
+    throw new Error('Method not implemented.');
+  }
   // Variáveis globais
   private appId = typeof (window as { [key: string]: any })['__app_id'] !== 'undefined' ? (window as { [key: string]: any })['__app_id'] as string : 'default-app-id';
+
   private firebaseConfig = {
     apiKey: "your-api-key",
     authDomain: "your-auth-domain",
@@ -81,37 +74,35 @@ export class App implements OnInit {
     messagingSenderId: "your-messaging-sender-id",
     appId: "your-app-id"
   };
+
   private initialAuthToken = typeof (window as { [key: string]: any })['__initial_auth_token'] !== 'undefined' ? (window as { [key: string]: any })['__initial_auth_token'] as string : null;
 
 
   private db!: Firestore;
   private auth!: Auth;
-
+  
   public userId = signal<User | null>(null);
   public isAppReady = signal(false);
   public currentView = signal<'dashboard' | 'products' | 'orders' | 'profile'>('dashboard');
 
-  
+
   public products = signal<Product[]>([]);
   public activeProductCount = computed(() => this.products().filter(p => p.isActive).length);
-  
-  
+  public inactiveProductCount = computed(() => this.products().filter(p => !p.isActive).length);
   public allOrders = signal<Orders[]>([]);
   public pendingOrders = computed(() => this.allOrders().filter(order => order.status === 'PENDENTE'));
   public newOrderCount = computed(() => this.pendingOrders().length);
-  
- 
+
   public currentOrderFilter = signal<Orders['status'] | 'TODOS'>('PENDENTE');
   public orderStatuses: (Orders['status'] | 'TODOS')[] = ['TODOS', 'PENDENTE', 'CONFIRMADO', 'PREPARANDO', 'CONCLUÍDO', 'CANCELADO'];
 
-  
   public newProduct = {
-    name: '', 
+    name: '',
     description: '',
     price: null as number | null,
     imageUrl: '',
   };
-  
+
 
   public establishmentProfile = signal<EstablishmentProfile | null>(null);
   public profileFormState = signal<EstablishmentProfile | null>(null);
@@ -132,9 +123,9 @@ export class App implements OnInit {
         const app = initializeApp(this.firebaseConfig);
         this.db = getFirestore(app);
         this.auth = getAuth(app);
-        
+
         this.initializeAuthAndData();
-        
+
       } catch (error) {
         console.error("Erro ao inicializar Firebase:", error);
       }
@@ -145,8 +136,7 @@ export class App implements OnInit {
   initializeAuthAndData() {
     throw new Error('Method not implemented.');
   }
-
-  
+ 
   private getEstablishmentCollectionPath({ collectionName }: { collectionName: string; }): any  {
     const user = this.userId()?.uid;
     if (!user) {
@@ -154,9 +144,9 @@ export class App implements OnInit {
     }
     return `artifacts/${this.appId}/public/data/establishments/${user}/${collectionName}`;
   }
-  
+
   //PERFIL
-  
+
   private listenForProfile() {
     const profilePath = `artifacts/${this.appId}/public/data/establishments/${this.userId()}/profile/details`;
     const docRef = doc(this.db, profilePath);
@@ -166,7 +156,7 @@ export class App implements OnInit {
   public updateScheduleTime(dayName: string, type: 'open' | 'close', time: string): void {
     const currentProfile = this.profileFormState();
     if (currentProfile) {
-        const updatedSchedule = currentProfile.schedule.map(day => 
+        const updatedSchedule = currentProfile.schedule.map(day =>
             day.day === dayName ? { ...day, [type]: time } : day
         );
         this.profileFormState.set({ ...currentProfile, schedule: updatedSchedule });
@@ -187,10 +177,10 @@ export class App implements OnInit {
           name: this.newProduct.name,
           description: this.newProduct.description,
           price: this.newProduct.price,
-          isActive: true, 
+          isActive: true,
           imageUrl: this.newProduct.imageUrl || `https://placehold.co/100x100/A0A0A0/FFFFFF?text=${this.newProduct.name.substring(0, 3)}`,
         };
-        
+      
         this.newProduct = { name: '', description: '', price: null, imageUrl: '' };
         console.log("Produto adicionado com sucesso!");
 
@@ -207,9 +197,9 @@ export class App implements OnInit {
     const q = query(collection(this.db, ordersPath), orderBy('createdAt', 'desc'));
   }
 
-    private customerName = 'Default Customer'; 
-    private product = { name: 'Sample Product', price: 10 }; 
-    private quantity = 1; 
+    private customerName = 'Default Customer';
+    private product = { name: 'Sample Product', price: 10 };
+    private quantity = 1;
     private newOrder: Omit<Orders, 'id'> = {
       customerName: this.customerName,
       items: [{ name: this.product.name, quantity: this.quantity, price: this.product.price }],
@@ -224,10 +214,7 @@ export class App implements OnInit {
       quantity: 0,
       costumername: ''
     };
-
-
-
-  public async updateOrderStatus(orderId: string, newStatus: Orders['status']) {
+    public async updateOrderStatus(orderId: string, newStatus: Orders['status']) {
     if (!this.db || !this.userId()) return;
 
     let paymentUpdate: Partial<Orders> = { status: newStatus };
@@ -235,8 +222,7 @@ export class App implements OnInit {
     if (newStatus === 'CONFIRMADO') {
         paymentUpdate.paymentStatus = 'APROVADO';
     }
-    
-    if (newStatus === 'CONCLUÍDO') {
+      if (newStatus === 'CONCLUÍDO') {
       paymentUpdate.paymentStatus = 'APROVADO';
     }
 
@@ -256,19 +242,20 @@ export class App implements OnInit {
   public filteredOrders = computed(() => {
     const filter = this.currentOrderFilter();
     const orders = this.allOrders();
-    
+
     if (filter === 'TODOS') {
       return orders;
     }
     return orders.filter(order => order.status === filter);
   });
-  
+
   // Helpers para o Template
-  
+
   public getOrderCountByStatus(status: Orders['status'] | 'TODOS'): number {
     if (status === 'TODOS') {
       return this.allOrders().length;
     }
+
     return this.allOrders().filter(order => order.status === status).length;
   }
 
@@ -307,22 +294,25 @@ export class App implements OnInit {
       case 'CONCLUÍDO': return 'border-green-500';
       default: return 'border-gray-300';
     }
+
   }
 
   public getViewClass(view: 'dashboard' | 'products' | 'orders' | 'profile'): string {
     const isActive = this.currentView() === view;
     return `w-full text-left py-3 px-4 rounded-lg font-medium mb-2 flex items-center transition-all duration-200 ${
-      isActive 
-        ? 'bg-indigo-600 text-white shadow-lg' 
+      isActive
+        ? 'bg-indigo-600 text-white shadow-lg'
         : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+
     }`;
   }
 
-  public changeView(view: 'dashboard' | 'products' | 'orders' | 'profile'): void {
+   public changeView(view: 'dashboard' | 'products' | 'orders' | 'profile'): void {
     this.currentView.set(view);
   }
 }
+
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, Firestore, Timestamp, FieldValue, FirestoreError, QuerySnapshot } from 'firebase/firestore';
 import { getAuth, signInAnonymously, signInWithCustomToken, UserCredential, onAuthStateChanged, Auth, User } from 'firebase/auth';
-import { signal, computed, effect } from '@angular/core'; 
+import { signal, computed, effect } from '@angular/core';
