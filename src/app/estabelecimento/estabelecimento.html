@@ -1,70 +1,174 @@
-<p>estabelecimento works!</p>
-
-//CODIGO NOVOOOO
-
-<div class="estabelecimento-container">
-  
-  <section class="profile">
-    <div class="logo-container">
-      <img [src]="PerfilEstabelecimento.logoUrl" alt="Logo do Estabelecimento" class="estabelecimento-logo">
+<div class="main-layout">
+  <aside class="sidebar">
+    <div class="logo-area">
+      <h2 style="color: var(--btn-bg);">{{ establishmentProfile()?.name || 'Gerenciador' }}</h2>
     </div>
-    
-    <div class="info-container">
-      <h1>{{PerfilEstabelecimento.name }}</h1>
-      <p><strong>Endereço:</strong> {{ PerfilEstabelecimento.address }}</p>
-      <p><strong>Telefone:</strong> {{ PerfilEstabelecimento.phone }}</p>
-      <p><strong>E-mail:</strong> {{ PerfilEstabelecimento.email }}</p>
-      <p class="description">{{ PerfilEstabelecimento.description }}</p>
-    </div>
-  </section>
 
-  <hr>
+    <nav class="nav-area">
+      <button 
+        [ngClass]="getViewClass('dashboard')"
+        (click)="changeView('dashboard')">
+        <i class="fas fa-chart-line"></i> Dashboard
+      </button>
 
-  <section class="Horarios">
-    <h2>Horário de Funcionamento</h2>
-    <ul>
-      <li *ngFor="let horario of Horarios">
-        <span class="dia">{{ horario.day }}:</span>
-        <span *ngIf="!horario.isClosed">{{ horario.open }} - {{ horario.closed }}</span>
-        <span *ngIf="horario.isClosed" class="closed">Fechado</span>
-      </li>
-    </ul>
-  </section>
+      <button 
+        [ngClass]="getViewClass('products')"
+        (click)="changeView('products')">
+        <i class="fas fa-boxes"></i> Produtos ({{ activeProductCount() }})
+      </button>
 
-  <hr>
+      <button 
+        [ngClass]="getViewClass('orders')"
+        (click)="changeView('orders')">
+        <i class="fas fa-receipt"></i> Pedidos <span *ngIf="newOrderCount()" class="badge">{{ newOrderCount() }}</span>
+      </button>
 
-  <section class="Produtos">
-    <h2>Nossos Produtos</h2>
-    <div class="produtos-grid">
-      <div class="produto-card" *ngFor="let produto of Produtos">
-        <img [src]="produto.imageUrl" [alt]="produto.name" class="produto-image">
-        <div class="produto-info">
-          <h3>{{ produto.name }}</h3>
-          <p class="descricao">{{ produto.description }}</p>
-          <p class="valor">R$ {{ produto.price | number:'1.2-2' }}</p>
-          <span class="active-status" *ngIf="!produto.isActive">Indisponível</span>
-          <button *ngIf="produto.isActive">Adicionar ao Pedido</button>
+      <button 
+        [ngClass]="getViewClass('profile')"
+        (click)="changeView('profile')">
+        <i class="fas fa-store"></i> Perfil
+      </button>
+    </nav>
+  </aside>
+
+  <main class="content-area">
+    <!-- Dashboard -->
+    <div *ngIf="currentView() === 'dashboard'" class="dashboard-view">
+      <h2>Dashboard 📊</h2>
+      <p>Bem-vindo(a), Gerente! Aqui está um resumo da sua atividade.</p>
+      
+      <div class="dashboard-stats-grid">
+        <div class="stat-card box-style">
+          <h3>Pedidos Pendentes</h3>
+          <p class="stat-value text-red">{{ pendingOrders().length || 0 }}</p>
+        </div>
+        <div class="stat-card box-style">
+          <h3>Produtos Ativos</h3>
+          <p class="stat-value text-green">{{ activeProductCount() }}</p>
+        </div>
+        <div class="stat-card box-style">
+          <h3>Total de Pedidos</h3>
+          <p class="stat-value">{{ allOrders().length || 0 }}</p>
+        </div>
+      </div>
+
+      <h3 class="mt-4">Últimos Pedidos</h3>
+      <div class="pedido-list">
+        <div class="pedido-item" [ngClass]="getOrderCardClass(pedido.status)"
+             *ngFor="let pedido of allOrders().slice(0, 5)">
+          <div class="pedido-header">
+            <span>#{{ pedido.id }} - {{ pedido.customerName }}</span>
+            <span [ngClass]="getOrderStatusBadgeClass(pedido.status)" class="status-badge">{{ pedido.status }}</span>
+          </div>
+          <p>Total: R$ {{ pedido.total | number:'1.2-2' }}</p>
         </div>
       </div>
     </div>
-  </section>
 
-  <hr>
+    <!-- Produtos -->
+    <div *ngIf="currentView() === 'products'" class="products-view">
+      <h2>Gerenciamento de Produtos 📦</h2>
 
-  <section class="Pedidos">
-    <h2>Últimos Pedidos</h2>
-    <div class="pedido-list">
-      <div class="pedido-item" *ngFor="let pedido of pedidos">
-        <div class="pedido-header">
-          <span>Pedido #{{ pedido.id }}</span>
-          <span><strong>Cliente:</strong> {{ pedido.customerName }}</span>
-        </div>
-        <div class="pedido-details">
-          <p><strong>Status:</strong> <span [ngClass]="pedido.status.toLowerCase()">{{ pedido.status }}</span></p>
-          <p><strong>Total:</strong> R$ {{ pedido.total | number:'1.2-2' }}</p>
-          <p class="date">Criado em: {{ pedido.createdAt | date:'short' }}</p>
+      <div class="new-product-form box-style">
+        <h3>Adicionar Novo Produto</h3>
+        <form (ngSubmit)="products()">
+          <input type="text" [(ngModel)]="newProduct.name" name="newName" placeholder="Nome" required>
+          <textarea [(ngModel)]="newProduct.description" name="newDesc" placeholder="Descrição"></textarea>
+          <input type="number" [(ngModel)]="newProduct.price" name="newPrice" placeholder="Preço (R$)" required min="0.01">
+          <input type="text" [(ngModel)]="newProduct.imageUrl" name="newUrl" placeholder="URL da Imagem (opcional)">
+          <button type="submit" class="btn-3d">Adicionar Produto</button>
+        </form>
+      </div>
+      
+      <h3 class="mt-4">Lista de Produtos ({{ products().length }})</h3>
+      <div class="produtos-grid">
+        <div class="produto-card" *ngFor="let produto of products()">
+          <img [src]="produto.imageUrl" [alt]="produto.name" class="produto-image">
+          <div class="produto-info">
+            <h3>{{ produto.name }}</h3>
+            <p class="descricao">{{ produto.description }}</p>
+            <p class="valor">R$ {{ produto.price | number:'1.2-2' }}</p>
+            <span class="active-status" *ngIf="!produto.isActive">Indisponível</span>
+            <button class="btn-3d" style="width: 100%; margin-top: 0.5rem;" [style.background]="produto.isActive ? 'var(--label-active)' : 'var(--btn-bg)'">
+              {{ produto.isActive ? 'Desativar' : 'Ativar' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </section>
+
+    <!-- Pedidos -->
+    <div *ngIf="currentView() === 'orders'" class="orders-view">
+      <h2>Gerenciamento de Pedidos 🧾</h2>
+
+      <div class="order-filters">
+        <button 
+          *ngFor="let status of orderStatuses" 
+          [ngClass]="getOrderFilterClass(status)"
+          (click)="filterOrders(status)">
+          {{ status }} ({{ getOrderCountByStatus(status) }})
+        </button>
+      </div>
+
+      <div class="pedido-list mt-4">
+        <div 
+          class="pedido-item" 
+          [ngClass]="getOrderCardClass(pedido.status)"
+          *ngFor="let pedido of filteredOrders()">
+          
+          <div class="pedido-header">
+            <span>Pedido #{{ pedido.id }} - Cliente: {{ pedido.customerName }}</span>
+            <span [ngClass]="getOrderStatusBadgeClass(pedido.status)" class="status-badge">{{ pedido.status }}</span>
+          </div>
+          
+          <div class="pedido-details">
+            <p>Total: R$ {{ pedido.total | number:'1.2-2' }}</p>
+            <p>Status Pagamento: <span [ngClass]="getPaymentStatusClass(pedido.paymentStatus)">{{ pedido.paymentStatus }}</span></p>
+            <p class="date">Criado em: {{ pedido.description| date:'short' }}</p>
+          </div>
+
+          <div class="pedido-actions">
+            <button *ngIf="pedido.status === 'PENDENTE'" class="btn-3d small-btn" (click)="updateOrderStatus(pedido.id, 'CONFIRMADO')">Confirmar</button>
+            <button *ngIf="pedido.status === 'CONFIRMADO' || pedido.status === 'PREPARANDO'" class="btn-3d small-btn" (click)="updateOrderStatus(pedido.id, 'CONCLUÍDO')">Concluir</button>
+            <button *ngIf="pedido.status !== 'CANCELADO' && pedido.status !== 'CONCLUÍDO'" class="btn-3d small-btn cancel-btn" (click)="updateOrderStatus(pedido.id, 'CANCELADO')">Cancelar</button>
+          </div>
+        </div>
+        <p *ngIf="filteredOrders().length === 0" class="text-center text-gray-500 mt-5">Nenhum pedido encontrado para o status "{{ currentOrderFilter() }}".</p>
+      </div>
+    </div>
+
+    <!-- Perfil -->
+    <div *ngIf="currentView() === 'profile'" class="profile-view">
+      <h2>Perfil do Estabelecimento ⚙️</h2>
+
+      <div class="profile-form box-style">
+        <form (ngSubmit)="saveProfile()">
+          <div class="form-group">
+            <label class="form-label">Nome:</label>
+            <input type="text" [(ngModel)]="profileFormState()!.name" name="profileName" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descrição:</label>
+            <textarea [(ngModel)]="profileFormState()!.description" name="profileDesc"></textarea>
+          </div>
+
+          <h3 class="mt-4">Horário de Funcionamento</h3>
+          <div class="schedule-grid">
+            <div *ngFor="let day of profileFormState()?.schedule" class="schedule-item">
+              <input type="checkbox" [(ngModel)]="day.isClosed" [name]="day.day + 'Closed'">
+              <label>{{ day.day }}</label>
+              <input type="time" [disabled]="day.isClosed" 
+                     [(ngModel)]="day.open" [name]="day.day + 'Open'"
+                     (ngModelChange)="updateScheduleTime(day.day, 'open', $event)">
+              <input type="time" [disabled]="day.isClosed" 
+                     [(ngModel)]="day.close" [name]="day.day + 'Close'"
+                     (ngModelChange)="updateScheduleTime(day.day, 'close', $event)">
+            </div>
+          </div>
+          <button type="submit" class="btn-3d mt-4" style="width: 100%;">Salvar Alterações</button>
+        </form>
+      </div>
+    </div>
+  </main>
 </div>
