@@ -1,4 +1,6 @@
-// === Paleta de cores ===
+@use "sass:color";
+
+
 $bg: #fcd269;
 $box: #e88a25;
 $label-active: #c86e1f;
@@ -6,20 +8,23 @@ $text-dark: #341405;
 $btn-bg: #f9e14b;
 $btn-shadow: #e88a25;
 $white: #fff;
+$font-family: "Poppins", sans-serif;
 
-// Cores utilitárias
+
+// Cores adicionais
 $danger: #c62828;
 $success: #2e7d32;
 $gray-light: #d7d7d7;
 
-// ------------------------------
-// Layout Geral
-// ------------------------------
+
+
 .main-layout {
   display: flex;
   height: 100vh;
   background: $bg;
   color: $text-dark;
+
+
 
   .content-area {
     flex: 1;
@@ -30,13 +35,13 @@ $gray-light: #d7d7d7;
       font-size: 1.7rem;
       margin-bottom: 1rem;
       color: $text-dark;
+      font-weight: 700;
+
     }
   }
 }
 
-// ------------------------------
-// Sidebar
-// ------------------------------
+
 .sidebar {
   width: 250px;
   background: $box;
@@ -65,7 +70,7 @@ $gray-light: #d7d7d7;
       border: none;
       padding: 0.8rem 1rem;
       font-size: 1rem;
-      color: lighten($white, 10%);
+      color: color.adjust($white, $lightness: 10%);
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -78,7 +83,7 @@ $gray-light: #d7d7d7;
       }
 
       &:hover {
-        background: darken($box, 10%);
+        background: color.adjust($box, $lightness: -10%);
         transform: translateX(3px);
       }
 
@@ -98,18 +103,16 @@ $gray-light: #d7d7d7;
   }
 }
 
-// ------------------------------
-// Cards, Grids e Caixas
-// ------------------------------
+
 .box-style {
   background: $white;
   padding: 1.2rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba($text-dark, 0.15);
-  border: 1px solid lighten($box, 25%);
+  border: 1px solid color.adjust($box, $lightness: 25%);
 }
 
-// Dashboard cards
+
 .dashboard-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -133,9 +136,7 @@ $gray-light: #d7d7d7;
   }
 }
 
-// ------------------------------
-// Lista de Pedidos
-// ------------------------------
+
 .pedido-list {
   display: flex;
   flex-direction: column;
@@ -181,9 +182,7 @@ $gray-light: #d7d7d7;
   }
 }
 
-// ------------------------------
-// Produtos
-// ------------------------------
+
 .produtos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -214,7 +213,7 @@ $gray-light: #d7d7d7;
 
       .descricao {
         font-size: 0.85rem;
-        color: darken($text-dark, 20%);
+        color: color.adjust($text-dark, $lightness: -20%);
       }
 
       .valor {
@@ -230,9 +229,7 @@ $gray-light: #d7d7d7;
   }
 }
 
-// ------------------------------
-// Botões
-// ------------------------------
+
 .btn-3d {
   background: $btn-bg;
   border: none;
@@ -256,13 +253,11 @@ $gray-light: #d7d7d7;
   &.cancel-btn {
     background: $danger;
     color: $white;
-    box-shadow: 0 4px 0 darken($danger, 10%);
+    box-shadow: 0 4px 0 color.adjust($danger, $lightness: -10%);
   }
 }
 
-// ------------------------------
-// Perfil
-// ------------------------------
+
 .profile-form {
   .form-group {
     margin-bottom: 1rem;
@@ -277,7 +272,7 @@ $gray-light: #d7d7d7;
       width: 100%;
       padding: 0.7rem;
       border-radius: 8px;
-      border: 1px solid lighten($box, 30%);
+      border: 1px solid color.adjust($box, $lightness: 30%);
       font-size: 1rem;
       color: $text-dark;
     }
@@ -292,7 +287,7 @@ $gray-light: #d7d7d7;
       background: $white;
       padding: 0.6rem;
       border-radius: 10px;
-      border: 1px solid lighten($box, 25%);
+      border: 1px solid color.adjust($box, $lightness: 25%);
       display: grid;
       grid-template-columns: 20px 80px 1fr 1fr;
       align-items: center;

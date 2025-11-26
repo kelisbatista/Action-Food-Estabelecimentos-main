@@ -7,7 +7,9 @@ import { Estabelecimento } from './estabelecimento/estabelecimento';
 
 export const routes: Routes = [
 
-    { path: '', component: InicioComponent },
-    { path: 'login', component: Login },
-    { path: 'cadastro', component: CadastroEstabelecimento }  
+    { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+    { path: 'inicio', component: InicioComponent },
+    { path: 'login', component: LoginComponent },
+    { path: 'cadastro', component: CadastroEstabelecimento },
+    { path: 'estabelecimento', component: Estabelecimento } 
 ];

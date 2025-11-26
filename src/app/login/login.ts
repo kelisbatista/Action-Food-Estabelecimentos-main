@@ -7,7 +7,8 @@ import { login } from '../services/auth';
   selector: 'app-login',
   imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
-  styleUrls: ['./login.scss']
+  styleUrls: ['./login.scss'],
+  standalone: true,
 })
 export class LoginComponent {
   email = '';

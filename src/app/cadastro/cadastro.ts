@@ -8,7 +8,7 @@ import { getDatabase, ref, push, set } from '@angular/fire/database';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './cadastro.html',
-  styleUrl: './cadastro.scss'
+  styleUrls: './cadastro.scss'
 })
 export class CadastroEstabelecimento {
   // Campos do formulário
