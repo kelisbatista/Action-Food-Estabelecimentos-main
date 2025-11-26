@@ -1,0 +1,41 @@
+<main class="flex items-center justify-center min-h-screen bg-[#fcd269] p-8 animate-fadeIn">
+  <div class="w-full max-w-md bg-[#e88a25] rounded-2xl shadow-xl p-8 sm:p-12 text-center text-[#341405] flex flex-col items-center gap-6 transition-transform duration-300 ease-in-out hover:-translate-y-1">
+
+    <!-- Logo atualizada -->
+    <img src="/Design sem nome (1).png" alt="Logo Action Food" class="w-40 h-40 mx-auto" />
+
+    <h1 class="text-4xl font-bold text-[#f9e14b]" style="text-shadow: 1px 1px 0 #341405;">
+      Action Food
+    </h1>
+
+    <p class="text-lg text-white">
+      Seja bem-vindo(a)! <br>
+      <span class="font-semibold text-[#341405]">Você já possui cadastro?</span>
+    </p>
+
+    <div class="flex flex-col gap-4 w-full mt-4">
+      <a
+        routerLink="/cadastro"
+        class="w-full bg-[#f9e14b] text-[#341405] font-bold text-lg py-3 px-4 rounded-xl shadow-[0_6px_0_#e88a25] transition-all duration-150 ease-in-out hover:brightness-105 active:translate-y-1 active:shadow-[0_3px_0_#e88a25]"
+      >
+        Cadastrar-se
+      </a>
+      <a
+        routerLink="/login"
+        class="w-full bg-[#f9e14b] text-[#341405] font-bold text-lg py-3 px-4 rounded-xl shadow-[0_6px_0_#e88a25] transition-all duration-150 ease-in-out hover:brightness-105 active:translate-y-1 active:shadow-[0_3px_0_#e88a25]"
+      >
+        Fazer login
+      </a>
+    </div>
+  </div>
+</main>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+</style>

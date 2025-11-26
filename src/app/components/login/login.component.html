@@ -1,0 +1,78 @@
+<main class="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#fcd269] to-[#f9e14b] p-4 sm:p-8 animate-fadeIn">
+  <a routerLink="/" class="absolute top-4 left-4 sm:top-8 sm:left-8 text-[#341405] hover:opacity-75 transition-opacity" aria-label="Voltar para a página inicial">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+    </svg>
+  </a>
+
+  <div class="w-full max-w-sm text-center">
+    
+    <!-- Logo atualizada -->
+    <img src="/Design sem nome (1).png" alt="Logo Action Food" class="w-28 h-28 mx-auto mb-6" />
+
+    <h2 class="text-4xl font-bold text-[#341405] tracking-wide">Bem-vindo de Volta</h2>
+    <h3 class="text-lg text-[#341405]/80 mt-2 mb-8">Faça seu login e boas vendas!</h3>
+
+    <form (ngSubmit)="fazerLogin()" class="flex flex-col gap-5 bg-white/10 p-6 sm:p-8 rounded-2xl shadow-lg backdrop-blur-sm">
+      @if(errorMessage()) {
+        <div class="p-3 rounded-lg bg-red-100 text-red-700 text-sm font-semibold text-left">
+          {{ errorMessage() }}
+        </div>
+      }
+      <label class="relative block rounded-xl bg-[#e88a25] px-4 pt-6 pb-2 shadow-md transition-all duration-200 ease-in-out focus-within:translate-y-[-2px] focus-within:shadow-lg">
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder=" "
+          required
+          class="peer w-full bg-transparent border-none outline-none text-white text-base font-medium"
+        />
+        <span class="absolute left-4 top-5 transition-all duration-200 ease-in-out pointer-events-none text-white/95 peer-focus:-translate-y-3.5 peer-focus:scale-90 peer-focus:text-[#c86e1f] peer-focus:font-semibold peer-[:not(:placeholder-shown)]:-translate-y-3.5 peer-[:not(:placeholder-shown)]:scale-90 peer-[:not(:placeholder-shown)]:text-[#c86e1f] peer-[:not(:placeholder-shown)]:font-semibold">
+          Email
+        </span>
+      </label>
+
+      <label class="relative block rounded-xl bg-[#e88a25] px-4 pt-6 pb-2 shadow-md transition-all duration-200 ease-in-out focus-within:translate-y-[-2px] focus-within:shadow-lg">
+        <input
+          type="password"
+          name="senha"
+          [(ngModel)]="senha"
+          placeholder=" "
+          required
+          class="peer w-full bg-transparent border-none outline-none text-white text-base font-medium"
+        />
+        <span class="absolute left-4 top-5 transition-all duration-200 ease-in-out pointer-events-none text-white/95 peer-focus:-translate-y-3.5 peer-focus:scale-90 peer-focus:text-[#c86e1f] peer-focus:font-semibold peer-[:not(:placeholder-shown)]:-translate-y-3.5 peer-[:not(:placeholder-shown)]:scale-90 peer-[:not(:placeholder-shown)]:text-[#c86e1f] peer-[:not(:placeholder-shown)]:font-semibold">
+          Senha
+        </span>
+      </label>
+
+      <button
+        type="submit"
+        [disabled]="isLoading()"
+        class="self-center mt-4 bg-[#f9e14b] text-[#341405] font-bold text-lg py-3 px-12 rounded-xl shadow-[0_6px_0_#e88a25] transition-all duration-150 ease-in-out hover:brightness-105 active:translate-y-1 active:shadow-[0_3px_0_#e88a25] disabled:opacity-70 disabled:cursor-not-allowed"
+      >
+        @if (isLoading()) {
+          <span>Aguarde...</span>
+        } @else {
+          <span>Próximo</span>
+        }
+      </button>
+    </form>
+
+    <a routerLink="/forgot-password" class="inline-block mt-6 text-base text-[#341405] font-medium cursor-pointer hover:opacity-80">
+      <u class="decoration-1">Esqueceu sua senha?</u>
+    </a>
+
+  </div>
+</main>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+</style>

@@ -1,0 +1,85 @@
+<main class="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#fcd269] to-[#f9e14b] py-12 px-4 animate-fadeIn">
+  <a routerLink="/" class="absolute top-4 left-4 sm:top-8 sm:left-8 text-[#341405] hover:opacity-75 transition-opacity" aria-label="Voltar para a página inicial">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+    </svg>
+  </a>
+
+  <div class="w-full max-w-md text-center">
+    <!-- Logo atualizada -->
+    <img src="/Design sem nome (1).png" alt="Logo Action Food" class="w-32 h-32 mx-auto mb-6" />
+
+    <h2 class="text-3xl font-bold text-[#341405] mb-6">Cadastro de Parceiro</h2>
+
+    <form (ngSubmit)="fazerCadastro()" class="flex flex-col gap-4 bg-white/10 p-6 sm:p-8 rounded-2xl shadow-lg backdrop-blur-sm">
+      @if(errorMessage()) {
+        <div class="p-3 rounded-lg bg-red-100 text-red-700 text-sm font-semibold text-left">
+          {{ errorMessage() }}
+        </div>
+      }
+      @if(successMessage()) {
+        <div class="p-3 rounded-lg bg-green-100 text-green-700 text-sm font-semibold text-left">
+          {{ successMessage() }}
+        </div>
+      }
+
+      <fieldset [disabled]="isLoading() || !!successMessage()">
+        <!-- Nome do Estabelecimento -->
+        <label class="relative block rounded-xl bg-[#e88a25] px-4 pt-6 pb-2 shadow-md transition-all duration-200 ease-in-out focus-within:translate-y-[-2px] focus-within:shadow-lg mb-4">
+          <input type="text" [(ngModel)]="partner.nome" name="nome" placeholder=" " required class="peer w-full bg-transparent border-none outline-none text-white text-base font-medium" />
+          <span class="absolute left-4 top-5 transition-all duration-200 ease-in-out pointer-events-none text-white/95 peer-focus:-translate-y-3.5 peer-focus:scale-90 peer-focus:text-[#c86e1f] peer-focus:font-semibold peer-[:not(:placeholder-shown)]:-translate-y-3.5 peer-[:not(:placeholder-shown)]:scale-90 peer-[:not(:placeholder-shown)]:text-[#c86e1f] peer-[:not(:placeholder-shown)]:font-semibold">Nome do Estabelecimento</span>
+        </label>
+
+        <!-- Email -->
+        <label class="relative block rounded-xl bg-[#e88a25] px-4 pt-6 pb-2 shadow-md transition-all duration-200 ease-in-out focus-within:translate-y-[-2px] focus-within:shadow-lg mb-4">
+          <input type="email" [(ngModel)]="partner.email" name="email" placeholder=" " required class="peer w-full bg-transparent border-none outline-none text-white text-base font-medium" />
+          <span class="absolute left-4 top-5 transition-all duration-200 ease-in-out pointer-events-none text-white/95 peer-focus:-translate-y-3.5 peer-focus:scale-90 peer-focus:text-[#c86e1f] peer-focus:font-semibold peer-[:not(:placeholder-shown)]:-translate-y-3.5 peer-[:not(:placeholder-shown)]:scale-90 peer-[:not(:placeholder-shown)]:text-[#c86e1f] peer-[:not(:placeholder-shown)]:font-semibold">Email</span>
+        </label>
+
+        <!-- Senha -->
+        <label class="relative block rounded-xl bg-[#e88a25] px-4 pt-6 pb-2 shadow-md transition-all duration-200 ease-in-out focus-within:translate-y-[-2px] focus-within:shadow-lg mb-4">
+          <input type="password" [(ngModel)]="partner.senha" name="senha" placeholder=" " required class="peer w-full bg-transparent border-none outline-none text-white text-base font-medium" />
+          <span class="absolute left-4 top-5 transition-all duration-200 ease-in-out pointer-events-none text-white/95 peer-focus:-translate-y-3.5 peer-focus:scale-90 peer-focus:text-[#c86e1f] peer-focus:font-semibold peer-[:not(:placeholder-shown)]:-translate-y-3.5 peer-[:not(:placeholder-shown)]:scale-90 peer-[:not(:placeholder-shown)]:text-[#c86e1f] peer-[:not(:placeholder-shown)]:font-semibold">Senha</span>
+        </label>
+
+        <!-- Telefone -->
+        <label class="relative block rounded-xl bg-[#e88a25] px-4 pt-6 pb-2 shadow-md transition-all duration-200 ease-in-out focus-within:translate-y-[-2px] focus-within:shadow-lg mb-4">
+          <input type="tel" [(ngModel)]="partner.telefone" name="telefone" placeholder=" " required class="peer w-full bg-transparent border-none outline-none text-white text-base font-medium" />
+          <span class="absolute left-4 top-5 transition-all duration-200 ease-in-out pointer-events-none text-white/95 peer-focus:-translate-y-3.5 peer-focus:scale-90 peer-focus:text-[#c86e1f] peer-focus:font-semibold peer-[:not(:placeholder-shown)]:-translate-y-3.5 peer-[:not(:placeholder-shown)]:scale-90 peer-[:not(:placeholder-shown)]:text-[#c86e1f] peer-[:not(:placeholder-shown)]:font-semibold">Telefone</span>
+        </label>
+
+        <!-- Logo URL (Opcional) -->
+        <label class="relative block rounded-xl bg-[#e88a25] px-4 pt-6 pb-2 shadow-md transition-all duration-200 ease-in-out focus-within:translate-y-[-2px] focus-within:shadow-lg">
+          <input type="text" [(ngModel)]="partner.logoUrl" name="logoUrl" placeholder=" " class="peer w-full bg-transparent border-none outline-none text-white text-base font-medium" />
+          <span class="absolute left-4 top-5 transition-all duration-200 ease-in-out pointer-events-none text-white/95 peer-focus:-translate-y-3.5 peer-focus:scale-90 peer-focus:text-[#c86e1f] peer-focus:font-semibold peer-[:not(:placeholder-shown)]:-translate-y-3.5 peer-[:not(:placeholder-shown)]:scale-90 peer-[:not(:placeholder-shown)]:text-[#c86e1f] peer-[:not(:placeholder-shown)]:font-semibold">Logo (URL)</span>
+        </label>
+      </fieldset>
+
+      <button
+        type="submit"
+        [disabled]="isLoading() || !!successMessage()"
+        class="self-center mt-4 bg-[#f9e14b] text-[#341405] font-bold text-lg py-3 px-12 rounded-xl shadow-[0_6px_0_#e88a25] transition-all duration-150 ease-in-out hover:brightness-105 active:translate-y-1 active:shadow-[0_3px_0_#e88a25] disabled:opacity-70 disabled:cursor-not-allowed"
+      >
+        @if (isLoading()) {
+          <span>Cadastrando...</span>
+        } @else {
+          <span>Cadastrar</span>
+        }
+      </button>
+
+      <p class="text-center text-sm text-[#341405] mt-4">
+        Já tem uma conta? <a routerLink="/login" class="font-bold underline hover:opacity-80">Faça login</a>
+      </p>
+    </form>
+  </div>
+</main>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+</style>
