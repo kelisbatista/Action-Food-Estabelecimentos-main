@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 # Estabelecimento
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.4.
+=======
+# ActionFOod
+
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.0.
+>>>>>>> 3476ba53d01bb511ca6c3a39eca1338b7dad1c18
 
 ## Development server
 

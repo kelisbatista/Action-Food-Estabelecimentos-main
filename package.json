@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "estabelecimento",
+=======
+  "name": "action-food",
+>>>>>>> 3476ba53d01bb511ca6c3a39eca1338b7dad1c18
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -21,6 +25,7 @@
     ]
   },
   "private": true,
+<<<<<<< HEAD
   "dependencies": {
     "@angular/common": "^20.3.0",
     "@angular/compiler": "^20.3.0",
@@ -48,5 +53,26 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.9.2"
+=======
+  "packageManager": "npm@10.9.3",
+  "dependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "firebase": "^12.6.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.0.0",
+    "@angular/cli": "^21.0.0",
+    "@angular/compiler-cli": "^21.0.0",
+    "jsdom": "^27.1.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+>>>>>>> 3476ba53d01bb511ca6c3a39eca1338b7dad1c18
   }
 }

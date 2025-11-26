@@ -16,6 +16,9 @@
       "preLaunchTask": "npm: test",
       "url": "http://localhost:9876/debug.html"
     }
+<<<<<<< HEAD
     
+=======
+>>>>>>> 3476ba53d01bb511ca6c3a39eca1338b7dad1c18
   ]
 }

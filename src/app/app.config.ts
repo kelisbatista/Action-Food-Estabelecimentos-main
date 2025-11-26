@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { bootstrapApplication } from '@angular/platform-browser';
 import { App } from '../app/app';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
@@ -20,3 +21,16 @@ bootstrapApplication(App, {
     provideAuth(() => getAuth())
   ]
 });
+=======
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { appRoutes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideRouter(appRoutes)
+  ]
+};
+>>>>>>> 3476ba53d01bb511ca6c3a39eca1338b7dad1c18

@@ -1,0 +1,41 @@
+<main
+  class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#fcd269] to-[#f9e14b] p-4 sm:p-8 animate-fadeIn text-[#341405]">
+  <div class="w-full max-w-lg text-center bg-white/20 p-8 rounded-2xl shadow-lg backdrop-blur-sm">
+    @if (authService.currentUser(); as user) {
+    <h1 class="text-4xl font-bold">Bem-vindo(a)!</h1>
+    <p class="mt-4 text-lg">Você está logado como:</p>
+    <p class="mt-2 text-xl font-semibold bg-[#e88a25] text-white py-2 px-4 rounded-lg inline-block break-all">{{
+      user.email }}</p>
+
+    <button (click)="logout()"
+      class="w-full mt-12 bg-[#f9e14b] text-[#341405] font-bold text-lg py-3 px-4 rounded-xl shadow-[0_6px_0_#e88a25] transition-all duration-150 ease-in-out hover:brightness-105 active:translate-y-1 active:shadow-[0_3px_0_#e88a25]">
+      Sair (Logout)
+    </button>
+    } @else {
+    <div class="flex flex-col items-center justify-center">
+      <h1 class="text-4xl font-bold">Carregando...</h1>
+      <p class="mt-4 text-lg">Aguarde enquanto verificamos sua sessão.</p>
+      <!-- Simple spinner -->
+      <div class="mt-8 border-4 border-t-4 border-t-[#341405] border-gray-200 rounded-full w-12 h-12 animate-spin">
+      </div>
+    </div>
+    }
+  </div>
+</main>
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+</style>
