@@ -1,11 +1,6 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
-<<<<<<< HEAD
-  "newProjectRoot": "projects",
-  "projects": {
-    "estabelecimento": {
-=======
   "cli": {
     "packageManager": "npm",
     "analytics": false
@@ -13,7 +8,6 @@
   "newProjectRoot": "projects",
   "projects": {
     "ActionFOod": {
->>>>>>> 3476ba53d01bb511ca6c3a39eca1338b7dad1c18
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -28,12 +22,6 @@
           "builder": "@angular/build:application",
           "options": {
             "browser": "src/main.ts",
-<<<<<<< HEAD
-            "polyfills": [
-              "zone.js"
-            ],
-=======
->>>>>>> 3476ba53d01bb511ca6c3a39eca1338b7dad1c18
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -74,56 +62,18 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-<<<<<<< HEAD
-              "buildTarget": "estabelecimento:build:production"
-            },
-            "development": {
-              "buildTarget": "estabelecimento:build:development"
-=======
               "buildTarget": "ActionFOod:build:production"
             },
             "development": {
               "buildTarget": "ActionFOod:build:development"
->>>>>>> 3476ba53d01bb511ca6c3a39eca1338b7dad1c18
             }
           },
           "defaultConfiguration": "development"
         },
-<<<<<<< HEAD
-        "extract-i18n": {
-          "builder": "@angular/build:extract-i18n"
-        },
-        "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
-            "tsConfig": "tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles.scss"
-            ]
-          }
-        }
-      }
-    }
-  },
-  "cli": {
-    "analytics": false
-=======
         "test": {
           "builder": "@angular/build:unit-test"
         }
       }
     }
->>>>>>> 3476ba53d01bb511ca6c3a39eca1338b7dad1c18
   }
 }
