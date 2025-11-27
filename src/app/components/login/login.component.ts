@@ -24,7 +24,7 @@ export class LoginComponent {
     this.errorMessage.set(null);
     try {
       await this.authService.login(this.email, this.senha);
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/estabelecimento']);
     } catch (error: any) {
       this.errorMessage.set(this.authService.mapAuthCodeToMessage(error.code));
     } finally {

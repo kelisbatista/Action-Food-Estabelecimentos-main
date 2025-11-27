@@ -6,7 +6,8 @@ import { RegisterComponent } from './components/register/register.component';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { AuthService } from './auth.service';
-import { Estabelecimento } from './estabelecimento/estabelecimento'; 
+import { Estabelecimento } from './estabelecimento/estabelecimento';
+
 
 const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
@@ -22,10 +23,12 @@ const authGuard: CanActivateFn = () => {
 export const appRoutes: Routes = [
   { path: '', component: WelcomeComponent, title: 'Welcome to Action Food' },
   { path: 'login', component: LoginComponent, title: 'Login - Action Food' },
+  { path: 'estabelecimento', component: Estabelecimento, title: 'Estabelecimento - Action Food' , canActivate: [authGuard] },
   { path: 'cadastro', component: RegisterComponent, title: 'Register - Action Food' },
   { path: 'forgot-password', component: ForgotPasswordComponent, title: 'Reset Password - Action Food' },
-  { path: 'dashboard', component: DashboardComponent, title: 'Dashboard - Action Food', canActivate: [authGuard] },
-  { path: '**', redirectTo: '', pathMatch: 'full' },
-  { path: 'estabelecimento', component: Estabelecimento, title: 'Estabelecimento - Action Food', canActivate: [authGuard]}
+
+
+
+  { path: '**', redirectTo: '', pathMatch: 'full' }
 
 ];

@@ -1,272 +1,415 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Signal, signal, computed, NgZone } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, QuerySnapshot, orderBy, updateDoc, serverTimestamp, Firestore, DocumentData, DocumentSnapshot} from 'firebase/firestore';
+import { getAuth, onAuthStateChanged, signOut, Auth,User } from 'firebase/auth';
+import { EstablishmentProfile } from '../services/profile.service';
+import { ProfileService } from '../services/profile.service';
+import { FirebaseService } from '../services/firebase.service';
+import { UserData } from '../services/firebase.service';
+
+export interface ScheduleDay { open: string; close: string; isClosed: boolean; }
+export type WeekSchedule = Record<string, ScheduleDay>;
 
 
+interface Product { id?: string; name: string; description: string; price: number; isActive: boolean; imageUrl?: string;}
 
-interface EstablishmentProfile {
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-  description: string;
-  logoUrl: string;
-  schedule: ScheduleDay[];
-}
+type OrderStatus = 'PENDENTE' | 'CONFIRMADO' | 'PREPARANDO' | 'CONCLUÍDO' | 'CANCELADO';
+type PaymentStatus = 'AGUARDANDO' | 'APROVADO' | 'RECUSADO';
 
-interface ScheduleDay {
-  day: string;
-  open: string;
-  close: string;
-  isClosed: boolean;
-}
-
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  isActive: boolean;
-  imageUrl: string;
-}
-
-interface Orders {
-  id: string;
-  costumername: string;
-  description: string;
-  price: number;
-  isActive: boolean;
-  imageUrl: string;
-  quantity: number;
-  createdAt: Date | FieldValue;
-  customerName: string;
-  items: { name: string, quantity: number, price: number }[];
-  total: number;
-  status: 'PENDENTE' | 'CONFIRMADO' | 'PREPARANDO' | 'CONCLUÍDO' | 'CANCELADO';
-  paymentStatus: 'AGUARDANDO' | 'APROVADO' | 'RECUSADO';
-}
-
+interface Orders { id?: string; customerName: string; items?: { name: string; quantity: number; price: number }[]; total?: number;
+status?: OrderStatus; paymentStatus?: PaymentStatus; createdAt?: any; description?: string; isActive?: boolean; 
+price?: number; quantity?: number; }
 
 @Component({
   selector: 'app-estabelecimento',
-  imports: [CommonModule, FormsModule, RouterModule, DatePipe],
-  templateUrl: './estabelecimento.html',
   standalone: true,
-  styleUrls:['./estabelecimento.scss'],
+  imports: [CommonModule, FormsModule, RouterModule, DatePipe,],
+  templateUrl: './estabelecimento.html',
+  styleUrls: ['./estabelecimento.scss'],
 })
 
 export class Estabelecimento implements OnInit {
-[x: string]: any;
-  public saveProfile(): void {
-    throw new Error('Method not implemented.');
+  nome: string = '';
+  email: string = '';
+  telefone: string = '';
+  endereco: string = '';
+  cidade: string = '';
+  bairro: string = '';
+
+
+  constructor(private ngZone: NgZone, public profile: ProfileService, private firebase: FirebaseService, ) 
+  {this.firebase.init();
+  this.initFirebaseClient();}
+  // dentro da classe Estabelecimento
+
+private initFirebaseClient() {
+  try {
+    // assume que this.firebase.init() já foi chamado e app inicializado
+    this.db = getFirestore();
+    this.auth = getAuth();
+
+    // Escuta alterações de autenticação
+    onAuthStateChanged(this.auth, (user) => {
+      // roda dentro do NgZone para manter detecção de mudanças do Angular quando necessário
+      this.ngZone.run(() => {
+        this.currentUser.set(user);
+        if (user) {
+          console.log('Usuário autenticado:', user.uid);
+          // inicializa listeners que dependem do uid (se ainda não inicializou)
+          this.initializeAuthAndData().catch(err => {
+            console.error('Erro ao inicializar dados após auth:', err);
+          });
+        } else {
+          console.log('Usuário não autenticado - limpando listeners');
+          // limpa listeners se usuário deslogou
+          this.cleanupListeners();
+          this.isAppReady.set(false);
+          this.products.set([]);
+          this.allOrders.set([]);
+          // opcional: reset profile state
+          this.profileFormState.set({
+            name: '',
+            address: '',
+            phone: '',
+            email: '',
+            description: '',
+            logoUrl: '',
+            schedule: this.defaultSchedule
+          });
+        }
+      });
+    });
+  } catch (err) {
+    console.error('Erro inicializando cliente Firebase:', err);
   }
-  // Variáveis globais
-  private appId = typeof (window as { [key: string]: any })['__app_id'] !== 'undefined' ? (window as { [key: string]: any })['__app_id'] as string : 'default-app-id';
+}
+  private appId = (window as any)['__app_id'] ?? 'default-app-id';
+
 
   private firebaseConfig = {
-    apiKey: "your-api-key",
-    authDomain: "your-auth-domain",
-    projectId: "your-project-id",
-    storageBucket: "your-storage-bucket",
-    messagingSenderId: "your-messaging-sender-id",
-    appId: "your-app-id"
   };
-
-  private initialAuthToken = typeof (window as { [key: string]: any })['__initial_auth_token'] !== 'undefined' ? (window as { [key: string]: any })['__initial_auth_token'] as string : null;
-
-
+  
   private db!: Firestore;
   private auth!: Auth;
   
-  public userId = signal<User | null>(null);
+  public currentUser = signal<User | null>(null);
   public isAppReady = signal(false);
   public currentView = signal<'dashboard' | 'products' | 'orders' | 'profile'>('dashboard');
-
-
   public products = signal<Product[]>([]);
-  public activeProductCount = computed(() => this.products().filter(p => p.isActive).length);
-  public inactiveProductCount = computed(() => this.products().filter(p => !p.isActive).length);
   public allOrders = signal<Orders[]>([]);
-  public pendingOrders = computed(() => this.allOrders().filter(order => order.status === 'PENDENTE'));
-  public newOrderCount = computed(() => this.pendingOrders().length);
+  public Profile = signal<EstablishmentProfile | null>(null);
+  public profileState = signal<EstablishmentProfile | null>(null);
 
-  public currentOrderFilter = signal<Orders['status'] | 'TODOS'>('PENDENTE');
-  public orderStatuses: (Orders['status'] | 'TODOS')[] = ['TODOS', 'PENDENTE', 'CONFIRMADO', 'PREPARANDO', 'CONCLUÍDO', 'CANCELADO'];
+  user: any = null;
+  uploading = false;
 
   public newProduct = {
     name: '',
     description: '',
     price: null as number | null,
-    imageUrl: '',
+    imageUrl: ''
   };
 
-
-  public establishmentProfile = signal<EstablishmentProfile | null>(null);
-  public profileFormState = signal<EstablishmentProfile | null>(null);
-
-  private defaultSchedule: ScheduleDay[] = [
-    { day: 'Domingo', open: '09:00', close: '18:00', isClosed: true },
-    { day: 'Segunda-feira', open: '09:00', close: '18:00', isClosed: false },
-    { day: 'Terça-feira', open: '09:00', close: '18:00', isClosed: false },
-    { day: 'Quarta-feira', open: '09:00', close: '18:00', isClosed: false },
-    { day: 'Quinta-feira', open: '09:00', close: '18:00', isClosed: false },
-    { day: 'Sexta-feira', open: '09:00', close: '22:00', isClosed: false },
-    { day: 'Sábado', open: '10:00', close: '22:00', isClosed: false },
-  ];
-
-  ngOnInit() {
-    if (this.firebaseConfig) {
-      try {
-        const app = initializeApp(this.firebaseConfig);
-        this.db = getFirestore(app);
-        this.auth = getAuth(app);
-
-        this.initializeAuthAndData();
-
-      } catch (error) {
-        console.error("Erro ao inicializar Firebase:", error);
-      }
-    } else {
-      console.error("Configuração do Firebase não encontrada.");
-    }
-  }
-  initializeAuthAndData() {
-    throw new Error('Method not implemented.');
-  }
- 
-  private getEstablishmentCollectionPath({ collectionName }: { collectionName: string; }): any  {
-    const user = this.userId()?.uid;
-    if (!user) {
-        throw new Error("Usuário não autenticado.");
-    }
-    return `artifacts/${this.appId}/public/data/establishments/${user}/${collectionName}`;
-  }
-
-  //PERFIL
-
-  private listenForProfile() {
-    const profilePath = `artifacts/${this.appId}/public/data/establishments/${this.userId()}/profile/details`;
-    const docRef = doc(this.db, profilePath);
-  }
-
-
-  public updateScheduleTime(dayName: string, type: 'open' | 'close', time: string): void {
-    const currentProfile = this.profileFormState();
-    if (currentProfile) {
-        const updatedSchedule = currentProfile.schedule.map(day =>
-            day.day === dayName ? { ...day, [type]: time } : day
-        );
-        this.profileFormState.set({ ...currentProfile, schedule: updatedSchedule });
-    }
-  }
-
-  // PRODUTOS
-
-  private async listenForProducts() {
-    const productsPath = this.getEstablishmentCollectionPath({ collectionName: 'products' });
-    const q = collection(this.db, productsPath);
-
-
-    if (this.newProduct.name && this.newProduct.price !== null && this.newProduct.description) {
-      try {
-        const newDocRef = doc(collection(this.db, this.getEstablishmentCollectionPath({ collectionName: 'products' })));
-        const productData: Omit<Product, 'id'> = {
-          name: this.newProduct.name,
-          description: this.newProduct.description,
-          price: this.newProduct.price,
-          isActive: true,
-          imageUrl: this.newProduct.imageUrl || `https://placehold.co/100x100/A0A0A0/FFFFFF?text=${this.newProduct.name.substring(0, 3)}`,
-        };
-      
-        this.newProduct = { name: '', description: '', price: null, imageUrl: '' };
-        console.log("Produto adicionado com sucesso!");
-
-      } catch (e) {
-        console.error("Erro ao adicionar produto: ", e);
-      }
-    }
-  }
-
- //PEDIDOS
-
-  private listenForOrders() {
-    const ordersPath = this.getEstablishmentCollectionPath({ collectionName: 'orders' });
-    const q = query(collection(this.db, ordersPath), orderBy('createdAt', 'desc'));
-  }
-
-    private customerName = 'Default Customer';
-    private product = { name: 'Sample Product', price: 10 };
-    private quantity = 1;
-    private newOrder: Omit<Orders, 'id'> = {
-      customerName: this.customerName,
-      items: [{ name: this.product.name, quantity: this.quantity, price: this.product.price }],
-      total: this.product.price * this.quantity,
-      status: 'PENDENTE',
-      paymentStatus: 'AGUARDANDO',
-      createdAt: serverTimestamp(),
-      description: '',
-      price: 0,
-      isActive: false,
-      imageUrl: '',
-      quantity: 0,
-      costumername: ''
-    };
-    public async updateOrderStatus(orderId: string, newStatus: Orders['status']) {
-    if (!this.db || !this.userId()) return;
-
-    let paymentUpdate: Partial<Orders> = { status: newStatus };
-
-    if (newStatus === 'CONFIRMADO') {
-        paymentUpdate.paymentStatus = 'APROVADO';
-    }
-      if (newStatus === 'CONCLUÍDO') {
-      paymentUpdate.paymentStatus = 'APROVADO';
-    }
-
-    try {
-      const orderRef = doc(this.db, this.getEstablishmentCollectionPath({ collectionName: 'orders' }), orderId);
-      await updateDoc(orderRef, paymentUpdate);
-      console.log(`Status do pedido ${orderId} atualizado para ${newStatus}.`);
-    } catch (e) {
-      console.error("Erro ao atualizar status do pedido: ", e);
-    }
-  }
-
-  public filterOrders(status: Orders['status'] | 'TODOS') {
-    this.currentOrderFilter.set(status);
-  }
-
+  public currentOrderFilter = signal<OrderStatus | 'TODOS'>('PENDENTE');
+  public activeProductCount = computed(() => this.products().filter(p => p.isActive).length);
+  public inactiveProductCount = computed(() => this.products().filter(p => !p.isActive).length);
+  public pendingOrders = computed(() => this.allOrders().filter(o => o.status === 'PENDENTE'));
+  public newOrderCount = computed(() => this.pendingOrders().length);
   public filteredOrders = computed(() => {
     const filter = this.currentOrderFilter();
     const orders = this.allOrders();
-
-    if (filter === 'TODOS') {
-      return orders;
-    }
-    return orders.filter(order => order.status === filter);
+    if (filter === 'TODOS') return orders;
+    return orders.filter(o => o.status === filter);
   });
 
-  // Helpers para o Template
+public updateClosed(day: string, event: Event) {
+  const input = event.target as HTMLInputElement;
+  const isClosed = input.checked;
 
-  public getOrderCountByStatus(status: Orders['status'] | 'TODOS'): number {
-    if (status === 'TODOS') {
-      return this.allOrders().length;
+  this.profileFormState.update(state => {
+    const updatedSchedule: WeekSchedule = { ...(state.schedule ?? this.defaultSchedule) };
+
+    updatedSchedule[day] = { ...updatedSchedule[day], isClosed };
+    return { ...state, schedule: updatedSchedule };
+  });
+}
+ public readonly defaultSchedule: WeekSchedule = {
+    segunda: { open: '08:00', close: '18:00', isClosed: false },
+    terca: { open: '08:00', close: '18:00', isClosed: false },
+    quarta: { open: '08:00', close: '18:00', isClosed: false },
+    quinta: { open: '08:00', close: '18:00', isClosed: false },
+    sexta: { open: '08:00', close: '18:00', isClosed: false },
+    sabado: { open: '09:00', close: '14:00', isClosed: false },
+    domingo: { open: '', close: '', isClosed: true }
+  };
+  get schedule(): WeekSchedule {
+    return this.profileFormState().schedule ?? this.defaultSchedule;
+  }
+public get scheduleDays(): ScheduleDay[] {
+  return Object.values(this.schedule);
+}
+public trackByDay(index: number, item: { key: string; value: ScheduleDay }): string {
+  return item.key;
+}
+public profileFormState = signal({
+  name: '',
+  address: '',
+  phone: '',
+  email: '',
+  description: '',
+  logoUrl: '',
+  schedule: {} as any,
+});
+
+  private unsubProfile: (() => void) | null = null;
+  private unsubProducts: (() => void) | null = null;
+  private unsubOrders: (() => void) | null = null;
+
+  ngOnInit() { this.firebase.userData$.subscribe((data) => {
+    if (data) {
+      this.nome = data.nome || '';
+      this.email = data.email || '';
+      this.telefone = data.telefone || '';
+      this.endereco = data.endereco || '';
+      this.cidade = data.cidade || '';
+      this.bairro = data.bairro || '';
+    }
+  });
+  }
+
+  private async initializeAuthAndData() {
+    try {
+      await Promise.all([
+        this.listenForProfile(this.currentUser()!.uid),
+        this.listenForProducts(),
+        this.listenForOrders(),
+      ]);
+      this.isAppReady.set(true);
+      console.log('Dados do estabelecimento carregados.');
+    } catch (e) {
+      console.error('Erro carregando dados:', e);
+    }}
+
+  private ensureUserOrThrow() {
+    const user = this.currentUser();
+    if (!user) throw new Error('Usuário não autenticado.');
+    return user;}
+
+  private getEstablishmentsBasePathForUser(userId: string) {
+    return `artifacts/${this.appId}/public/data/establishments/${userId}`;}
+
+  private getCollectionRef(collectionName: string) {
+    const user = this.ensureUserOrThrow();
+    const base = this.getEstablishmentsBasePathForUser(user.uid);
+    return collection(this.db, `${base}/${collectionName}`);}
+
+  private getDocRef(relativePath: string) {
+    const user = this.ensureUserOrThrow();
+    const base = this.getEstablishmentsBasePathForUser(user.uid);
+    return doc(this.db, `${base}/${relativePath}`); }
+
+  private listenForProfile(uid: string): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      if (this.unsubProfile) {
+        this.unsubProfile();
+        this.unsubProfile = null;
+      }
+      const profileDoc = this.getDocRef('profile/details');
+      this.unsubProfile = onSnapshot(
+        profileDoc,
+        (snap: DocumentSnapshot<DocumentData>) => {
+          this.ngZone.run(() => {
+            if (snap.exists()) {
+              const data = snap.data() as EstablishmentProfile;
+              this.profileFormState.set({ ...data, schedule: data.schedule ?? this.defaultSchedule });
+            } else {
+              const empty: EstablishmentProfile = {
+                name: '',
+                address: '',
+                phone: '',
+                email: this.currentUser()?.email ?? '',
+                description: '',
+                logoUrl: '',
+                schedule: this.defaultSchedule
+              };
+              this.profileFormState.set(empty);
+            }
+            this.profile.listenForProfile(this.currentUser()!.uid)
+            .subscribe((profile: EstablishmentProfile | null) => {
+              console.log("profile carregado", profile);
+    if (profile) {
+      this.profileFormState.set(profile);
+    }
+  });
+          });
+          resolve();
+        },
+        (err) => {
+          console.error('Erro no snapshot profile:', err);
+          resolve();
+        }
+      );
+    } catch (error) {
+      console.error('Erro inesperado em listenForProfile:', error);
+      resolve();
+    }
+  });
+}
+    public async getUserData(uid: string) {
+      const userRef = doc(this.db, 'users', uid);
+      const snap = await getDoc(userRef);
+
+      if (snap.exists()) {
+        return snap.data();
+      } else {
+        return null;
+      }
     }
 
-    return this.allOrders().filter(order => order.status === status).length;
-  }
+  public updateScheduleTime(day: string, field: 'open' | 'close', event: any) {
+  const value = event.target.value;
 
-  public getOrderFilterClass(status: Orders['status'] | 'TODOS'): string {
-    const isActive = this.currentOrderFilter() === status;
-    return `px-4 py-2 rounded-lg font-semibold transition duration-200 ${
-      isActive ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-200'
-    }`;
-  }
+  this.profileFormState.update(state => {
+    const updatedSchedule = state.schedule ?? {};
+    updatedSchedule[day] = {
+      ...updatedSchedule[day],
+      [field]: value
+    };
+    return { ...state, schedule: updatedSchedule };
+  });
+}
 
-  public getOrderStatusBadgeClass(status: Orders['status']): string {
+ private listenForProducts(): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      if (this.unsubProducts) {
+        this.unsubProducts();
+        this.unsubProducts = null;}
+      const productsCol = this.getCollectionRef('products'); 
+      this.unsubProducts = onSnapshot(
+        productsCol,
+        (snap: QuerySnapshot<DocumentData>) => {
+          const list: Product[] = [];
+          snap.docs.forEach((docSnap) => {
+            const d = docSnap.data() as Partial<Product>;
+            list.push({
+              id: docSnap.id,
+              name: d.name ?? '',
+              description: d.description ?? '',
+              price: d.price ?? 0,
+              isActive: d.isActive ?? true,
+              imageUrl: d.imageUrl ?? ''
+            });
+          });
+          this.products.set(list);
+          resolve();
+        },
+        (err) => {
+          console.error('Erro no snapshot products:', err);
+          resolve();
+        });
+    } catch (e) {
+      console.error('listenForProducts erro:', e);
+      resolve();
+    }
+  });
+}
+  public async addProduct() {
+    try {
+      if (!this.newProduct.name || this.newProduct.price == null) {
+        alert('Nome e preço são obrigatórios.');
+        return;
+      }
+      const productsCol = this.getCollectionRef('products');
+      await addDoc(productsCol as any, {
+        name: this.newProduct.name,
+        description: this.newProduct.description,
+        price: this.newProduct.price,
+        isActive: true,
+        imageUrl: this.newProduct.imageUrl || `https://placehold.co/100x100/A0A0A0/FFFFFF?text=${encodeURIComponent(this.newProduct.name.substring(0,3))}`
+      });
+      this.newProduct = { name: '', description: '', price: null, imageUrl: '' };
+      console.log('Produto adicionado.');
+    } catch (e) {
+      console.error('Erro ao adicionar produto:', e);
+      alert('Erro ao adicionar produto. Veja console.');
+    }}
+
+  public async toggleProductActive(productId?: string, current?: boolean) {
+    if (!productId) return;
+    try {
+      const user = this.ensureUserOrThrow();
+      const productDoc = doc(this.db, `${this.getEstablishmentsBasePathForUser(user.uid)}/products/${productId}`);
+      await updateDoc(productDoc as any, { isActive: !current });
+      console.log('Produto atualizado.');
+    } catch (e) {
+      console.error('Erro ao alternar produto:', e);
+    }
+  }
+  private listenForOrders(): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      if (this.unsubOrders) {
+        this.unsubOrders();
+        this.unsubOrders = null;
+      }
+      const ordersCol = this.getCollectionRef('orders');
+      const qOrders = query(ordersCol, orderBy('createdAt', 'desc'));
+      this.unsubOrders = onSnapshot(
+        qOrders,
+        (snap: QuerySnapshot) => {
+          const list: Orders[] = snap.docs.map((doc) => {
+            const data = doc.data() as Partial<Orders>;
+            return {
+              id: doc.id,
+              customerName: data.customerName ?? '',
+              description: data.description ?? '',
+              price: data.price ?? 0,
+              isActive: data.isActive ?? true,
+              quantity: data.quantity ?? 1,
+              items: data.items ?? [],
+              total: data.total ?? 0,
+              status: data.status ?? 'PENDENTE',
+              paymentStatus: data.paymentStatus ?? 'AGUARDANDO',
+              createdAt: data.createdAt ?? null
+            };
+          });
+          this.allOrders.set(list);
+          resolve();},
+        (err) => {
+          console.error('Erro no snapshot orders:', err);
+          resolve();
+        }
+      );
+    } catch (err) {
+      console.error('Erro ao iniciar listener de orders:', err);
+      resolve();
+    }
+  });
+}
+  public async updateOrderStatus(orderId: string | undefined, newStatus: OrderStatus) {
+    if (!orderId) return;
+    try {
+      const user = this.ensureUserOrThrow();
+      const orderDoc = doc(this.db, `${this.getEstablishmentsBasePathForUser(user.uid)}/orders/${orderId}`);
+      const updatePayload: Partial<Orders> = { status: newStatus };
+      if (newStatus === 'CONFIRMADO' || newStatus === 'CONCLUÍDO') updatePayload.paymentStatus = 'APROVADO';
+      await updateDoc(orderDoc as any, updatePayload);
+      console.log(`Pedido ${orderId} atualizado para ${newStatus}`);
+    } catch (e) {
+      console.error('Erro ao atualizar pedido:', e);
+    }
+  }
+  public filterOrders(status: OrderStatus | 'TODOS') { this.currentOrderFilter.set(status); }
+  public getOrderCountByStatus(status: OrderStatus | 'TODOS'): number {
+    if (status === 'TODOS') return this.allOrders().length;
+    return this.allOrders().filter(o => o.status === status).length;
+  }
+  public getOrderStatusBadgeClass(status?: OrderStatus): string {
     switch (status) {
       case 'PENDENTE': return 'bg-red-500 text-white';
       case 'CONFIRMADO': return 'bg-blue-500 text-white';
@@ -276,8 +419,7 @@ export class Estabelecimento implements OnInit {
       default: return 'bg-gray-200 text-gray-800';
     }
   }
-
-  public getPaymentStatusClass(status: Orders['paymentStatus']): string {
+  public getPaymentStatusClass(status?: PaymentStatus): string {
     switch (status) {
       case 'APROVADO': return 'text-green-600 font-bold';
       case 'AGUARDANDO': return 'text-yellow-600 font-bold';
@@ -285,8 +427,7 @@ export class Estabelecimento implements OnInit {
       default: return 'text-gray-500';
     }
   }
-
-  public getOrderCardClass(status: Orders['status']): string {
+  public getOrderCardClass(status?: OrderStatus): string {
     switch (status) {
       case 'PENDENTE': return 'border-red-500';
       case 'CONFIRMADO': return 'border-blue-500';
@@ -294,25 +435,15 @@ export class Estabelecimento implements OnInit {
       case 'CONCLUÍDO': return 'border-green-500';
       default: return 'border-gray-300';
     }
-
   }
-
   public getViewClass(view: 'dashboard' | 'products' | 'orders' | 'profile'): string {
     const isActive = this.currentView() === view;
-    return `w-full text-left py-3 px-4 rounded-lg font-medium mb-2 flex items-center transition-all duration-200 ${
-      isActive
-        ? 'bg-indigo-600 text-white shadow-lg'
-        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-
-    }`;
+    return `w-full text-left py-3 px-4 rounded-lg font-medium mb-2 flex items-center transition-all duration-200 ${isActive ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`;
   }
-
-   public changeView(view: 'dashboard' | 'products' | 'orders' | 'profile'): void {
-    this.currentView.set(view);
+  public changeView(view: 'dashboard' | 'products' | 'orders' | 'profile'): void { this.currentView.set(view); }
+  private cleanupListeners() {
+    if (this.unsubProfile) { this.unsubProfile(); this.unsubProfile = null; }
+    if (this.unsubProducts) { this.unsubProducts(); this.unsubProducts = null; }
+    if (this.unsubOrders) { this.unsubOrders(); this.unsubOrders = null; }
   }
 }
-
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, Firestore, Timestamp, FieldValue, FirestoreError, QuerySnapshot } from 'firebase/firestore';
-import { getAuth, signInAnonymously, signInWithCustomToken, UserCredential, onAuthStateChanged, Auth, User } from 'firebase/auth';
-import { signal, computed, effect } from '@angular/core';

@@ -1,5 +1,7 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
+import { FirebaseApp, initializeApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, Auth, signInAnonymously } from 'firebase/auth';
+import { Injectable } from '@angular/core';
+import { Firestore, getFirestore } from 'firebase/firestore';
 
 // Configurações do Firebase
 const firebaseConfig = {
@@ -39,3 +41,4 @@ export async function login(email: string, password: string) {
 export async function logout() {
   await signOut(auth);
 }
+
