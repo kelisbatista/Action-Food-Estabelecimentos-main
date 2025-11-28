@@ -67,6 +67,23 @@ $white: #fff;
       box-shadow: 0 6px 0 $btn-shadow;
     }
   }
+  .logout-btn {
+  margin-top: auto;  // isso empurra o botão para o final da coluna
+  background-color: #d9534f;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color .2s ease;
+}
+
+.logout-btn:hover {
+  background-color: #c9302c;
+}
 }
 
 /* =========================================

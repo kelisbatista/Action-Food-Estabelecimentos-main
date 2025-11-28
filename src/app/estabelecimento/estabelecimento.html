@@ -1,7 +1,9 @@
 <div class="min-h-screen bg-gray-100 flex">
   <!-- Sidebar Menu -->
   <div class="w-64 bg-gray-800 text-white p-4">
-    <h2 class="text-xl font-bold mb-6">Estabelecimento</h2>
+   <h2 class="text-xl font-bold mb-6 flex items-center gap-3" 
+    *ngIf="profileFormState() as profile"> {{ profile.name || 'Estabelecimento' }}
+  </h2>
     <button 
       [class]="getViewClass('dashboard')" 
       (click)="changeView('dashboard')">
@@ -21,6 +23,8 @@
       [class]="getViewClass('profile')" 
       (click)="changeView('profile')">
       Perfil
+    </button>
+    <button class="logout-btn " (click)="logout() ">Sair
     </button>
   </div>
 
@@ -84,11 +88,9 @@
               <p>R$ {{ product.price }}</p>
               <img *ngIf="product.imageUrl" [src]="product.imageUrl" alt="Imagem do produto" class="w-16 h-16 mt-2">
             </div>
-            <button 
-              (click)="toggleProductActive(product.id, product.isActive)" 
-              [class]="product.isActive ? 'bg-green-500' : 'bg-red-500'" 
-              class="text-white px-3 py-1 rounded">
-              {{ product.isActive ? 'Ativo' : 'Inativo' }}
+            <button  (click)="deleteProduct(uid, product.id)"
+            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded flex items-center gap-2">
+            <span class="material-icons">Excluir Produto</span>
             </button>
           </div>
         </div>
@@ -106,14 +108,14 @@
         </button>
       </div>
       <div class="space-y-4">
-        <div *ngFor="let order of filteredOrders()" [class]="getOrderCardClass(order.status)" class="bg-white p-4 rounded-lg shadow border-l-4">
+        <div *ngFor="let order of filteredOrders()" [ngClass]="getOrderCardClass(order.status)" class="bg-white p-4 rounded-lg shadow border-l-4">
           <div class="flex justify-between items-start">
             <div>
               <h3 class="font-semibold">{{ order.customerName }}</h3>
               <p *ngIf="order.description">{{ order.description }}</p>
               <p>Total: R$ {{ order.total }}</p>
-              <p>Status: <span [class]="getOrderStatusBadgeClass(order.status)" class="px-2 py-1 rounded text-sm">{{ order.status }}</span></p>
-              <p>Pagamento: <span [class]="getPaymentStatusClass(order.paymentStatus)">{{ order.paymentStatus }}</span></p>
+              <p>Status: <span class="getOrderStatusBadgeClass(order.status)" class="px-2 py-1 rounded text-sm">{{ order.status }}</span></p>
+              <p>Pagamento: <span class="getPaymentStatusClass(order.paymentStatus)">{{ order.paymentStatus }}</span></p>
               <p *ngIf="order.createdAt">Criado em: {{ order.createdAt.toDate() | date:'short' }}</p>
             </div>
             <div class="space-x-2">

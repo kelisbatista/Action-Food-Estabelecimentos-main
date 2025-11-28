@@ -17,7 +17,7 @@ constructor(private firebase: FirebaseService) {}
 
 
 private profileDocPath(userId: string) {
-return `establishments/${userId}/profile/details`;
+return `estabelecimentos/${userId}/profile/details`;
 }
 
 

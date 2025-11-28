@@ -25,7 +25,7 @@ constructor(private firebase: FirebaseService) {}
 
 
 private ordersCollectionPath(userId: string) {
-return `establishments/${userId}/orders`;
+return `orders/${userId}`;
 }
 
 

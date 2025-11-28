@@ -21,7 +21,7 @@ constructor(@Inject(FirebaseService) private firebase: FirebaseService) {}
 
 private productsCollectionPath(userId: string) {
 // Estrutura: establishments/{userId}/products
-return `estabelecimentos/${userId}/products`;
+return `estabelecimentos/${userId}/produtos`;
 }
 
 
@@ -58,9 +58,11 @@ return await updateDoc(docRef, patch as any);
 }
 
 
-async deleteProduct(userId: string, productId: string) {
-const db = this.firebase.getDb();
-const docRef = doc(db, this.productsCollectionPath(userId), productId);
-return await deleteDoc(docRef);
+async deleteProduct(userId: string | null | undefined, productId: string) {
+  if (!userId) throw new Error("UserId não informado para deleteProduct");
+
+  const db = this.firebase.getDb();
+  const docRef = doc(db, this.productsCollectionPath(userId), productId);
+  return await deleteDoc(docRef);
 }
 }

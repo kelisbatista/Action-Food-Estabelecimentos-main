@@ -9,6 +9,8 @@ import { EstablishmentProfile } from '../services/profile.service';
 import { ProfileService } from '../services/profile.service';
 import { FirebaseService } from '../services/firebase.service';
 import { UserData } from '../services/firebase.service';
+import { ProductsService } from '../services/products.service';
+import { getStorage, ref, getDownloadURL, uploadBytes } from 'firebase/storage';
 
 export interface ScheduleDay { open: string; close: string; isClosed: boolean; }
 export type WeekSchedule = Record<string, ScheduleDay>;
@@ -40,36 +42,28 @@ export class Estabelecimento implements OnInit {
   bairro: string = '';
 
 
-  constructor(private ngZone: NgZone, public profile: ProfileService, private firebase: FirebaseService, ) 
+  constructor(private ngZone: NgZone, public profile: ProfileService, private firebase: FirebaseService, 
+    public productsService: ProductsService) 
   {this.firebase.init();
   this.initFirebaseClient();}
-  // dentro da classe Estabelecimento
-
-private initFirebaseClient() {
+  private initFirebaseClient() {
   try {
-    // assume que this.firebase.init() já foi chamado e app inicializado
     this.db = getFirestore();
     this.auth = getAuth();
-
-    // Escuta alterações de autenticação
     onAuthStateChanged(this.auth, (user) => {
-      // roda dentro do NgZone para manter detecção de mudanças do Angular quando necessário
       this.ngZone.run(() => {
         this.currentUser.set(user);
         if (user) {
           console.log('Usuário autenticado:', user.uid);
-          // inicializa listeners que dependem do uid (se ainda não inicializou)
           this.initializeAuthAndData().catch(err => {
             console.error('Erro ao inicializar dados após auth:', err);
           });
         } else {
           console.log('Usuário não autenticado - limpando listeners');
-          // limpa listeners se usuário deslogou
           this.cleanupListeners();
           this.isAppReady.set(false);
           this.products.set([]);
           this.allOrders.set([]);
-          // opcional: reset profile state
           this.profileFormState.set({
             name: '',
             address: '',
@@ -87,7 +81,6 @@ private initFirebaseClient() {
   }
 }
   private appId = (window as any)['__app_id'] ?? 'default-app-id';
-
 
   private firebaseConfig = {
   };
@@ -113,6 +106,11 @@ private initFirebaseClient() {
 
   user: any = null;
   uploading = false;
+
+
+  get uid(): string | null {
+  return this.currentUser()?.uid ?? null;
+}
 
   public newProduct = {
     name: '',
@@ -207,7 +205,7 @@ public profileFormState = signal({
     return user;}
 
   private getEstablishmentsBasePathForUser(userId: string) {
-  return `/estabelecimentos/${userId}`;
+  return `estabelecimentos/${userId}`;
 }
   private getCollectionRef(collectionName: string) {
   const user = this.ensureUserOrThrow();
@@ -276,16 +274,31 @@ public profileFormState = signal({
     alert("Erro ao salvar perfil.");
   }
 }
+    public async logout() {
+  try {
+    await signOut(this.auth);
+
+    this.currentUser.set(null);
+    this.cleanupListeners();
+    this.isAppReady.set(false);
+
+    window.location.href = '/login';
+  } catch (error) {
+    console.error('Erro ao fazer logout:', error);
+    alert('Erro ao fazer logout.');
+  }
+}
+
     public async getUserData(uid: string) {
       const userRef = doc(this.db, 'users', uid);
       const snap = await getDoc(userRef);
-
       if (snap.exists()) {
         return snap.data();
       } else {
         return null;
       }
     }
+  
 
   public updateScheduleTime(day: string, field: 'open' | 'close', event: any) {
   const value = event.target.value;
@@ -306,7 +319,7 @@ public profileFormState = signal({
       if (this.unsubProducts) {
         this.unsubProducts();
         this.unsubProducts = null;}
-      const productsCol = this.getCollectionRef('products'); 
+      const productsCol = this.getCollectionRef('produtos'); 
       this.unsubProducts = onSnapshot(
         productsCol,
         (snap: QuerySnapshot<DocumentData>) => {
@@ -341,7 +354,7 @@ public profileFormState = signal({
         alert('Nome e preço são obrigatórios.');
         return;
       }
-      const productsCol = this.getCollectionRef('products');
+      const productsCol = this.getCollectionRef('produtos');
       await addDoc(productsCol as any, {
         name: this.newProduct.name,
         description: this.newProduct.description,
@@ -360,13 +373,31 @@ public profileFormState = signal({
     if (!productId) return;
     try {
       const user = this.ensureUserOrThrow();
-      const productDoc = doc(this.db, `${this.getEstablishmentsBasePathForUser(user.uid)}/products/${productId}`);
+      const productDoc = doc(this.db, `${this.getEstablishmentsBasePathForUser(user.uid)}/produtos/${productId}`);
       await updateDoc(productDoc as any, { isActive: !current });
       console.log('Produto atualizado.');
     } catch (e) {
       console.error('Erro ao alternar produto:', e);
     }
   }
+async deleteProduct(userId: string | null, productId?: string) {
+  if (!productId) return;
+  const uidToUse = userId ?? this.currentUser()?.uid;
+  if (!uidToUse) {
+    alert('Usuário não autenticado.');
+    return;
+  }
+  const confirmDelete = confirm('Tem certeza que deseja remover este produto?');
+  if (!confirmDelete) return;
+  try {
+    await this.productsService.deleteProduct(uidToUse, productId);
+    console.log('Produto removido com sucesso');
+  } catch (error) {
+    console.error('Erro ao remover produto:', error);
+    alert('Erro ao remover produto. Veja console.');
+  }
+}
+
   private listenForOrders(): Promise<void> {
   return new Promise((resolve) => {
     try {
