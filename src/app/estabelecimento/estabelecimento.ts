@@ -102,6 +102,14 @@ private initFirebaseClient() {
   public allOrders = signal<Orders[]>([]);
   public Profile = signal<EstablishmentProfile | null>(null);
   public profileState = signal<EstablishmentProfile | null>(null);
+  public statuses: (OrderStatus | 'TODOS')[] = [
+  'TODOS',
+  'PENDENTE',
+  'CONFIRMADO',
+  'PREPARANDO',
+  'CONCLUÍDO',
+  'CANCELADO'
+];
 
   user: any = null;
   uploading = false;
@@ -199,18 +207,19 @@ public profileFormState = signal({
     return user;}
 
   private getEstablishmentsBasePathForUser(userId: string) {
-    return `artifacts/${this.appId}/public/data/establishments/${userId}`;}
-
+  return `/estabelecimentos/${userId}`;
+}
   private getCollectionRef(collectionName: string) {
-    const user = this.ensureUserOrThrow();
-    const base = this.getEstablishmentsBasePathForUser(user.uid);
-    return collection(this.db, `${base}/${collectionName}`);}
+  const user = this.ensureUserOrThrow();
+  const base = this.getEstablishmentsBasePathForUser(user.uid);
+  return collection(this.db, `${base}/${collectionName}`);
+}
 
-  private getDocRef(relativePath: string) {
-    const user = this.ensureUserOrThrow();
-    const base = this.getEstablishmentsBasePathForUser(user.uid);
-    return doc(this.db, `${base}/${relativePath}`); }
-
+  private getDocRef(collectionName: string, docId: string) {
+  const user = this.ensureUserOrThrow();
+  const base = this.getEstablishmentsBasePathForUser(user.uid);
+  return doc(this.db, `${base}/${collectionName}/${docId}`);
+}
   private listenForProfile(uid: string): Promise<void> {
   return new Promise((resolve) => {
     try {
@@ -218,46 +227,54 @@ public profileFormState = signal({
         this.unsubProfile();
         this.unsubProfile = null;
       }
-      const profileDoc = this.getDocRef('profile/details');
-      this.unsubProfile = onSnapshot(
-        profileDoc,
-        (snap: DocumentSnapshot<DocumentData>) => {
+      const sub = this.profile.listenForProfile(uid).subscribe({
+        next: (profile) => {
           this.ngZone.run(() => {
-            if (snap.exists()) {
-              const data = snap.data() as EstablishmentProfile;
-              this.profileFormState.set({ ...data, schedule: data.schedule ?? this.defaultSchedule });
+            if (profile) {
+              this.profileFormState.set(profile);
             } else {
-              const empty: EstablishmentProfile = {
+              this.profileFormState.set({
                 name: '',
                 address: '',
                 phone: '',
                 email: this.currentUser()?.email ?? '',
                 description: '',
                 logoUrl: '',
-                schedule: this.defaultSchedule
-              };
-              this.profileFormState.set(empty);
+                schedule: this.defaultSchedule,
+              });
             }
-            this.profile.listenForProfile(this.currentUser()!.uid)
-            .subscribe((profile: EstablishmentProfile | null) => {
-              console.log("profile carregado", profile);
-    if (profile) {
-      this.profileFormState.set(profile);
-    }
-  });
           });
           resolve();
         },
-        (err) => {
-          console.error('Erro no snapshot profile:', err);
+        error: (err) => {
+          console.error("Erro ao ouvir profile:", err);
           resolve();
         }
-      );
+      });
+      this.unsubProfile = () => sub.unsubscribe();
     } catch (error) {
-      console.error('Erro inesperado em listenForProfile:', error);
+      console.error("Erro inesperado em listenForProfile:", error);
       resolve();
     }
   });
+}
+
+  public async saveProfile() {
+  const user = this.currentUser();
+  if (!user) return alert("Usuário não autenticado.");
+
+  const profile: EstablishmentProfile = {
+    ...this.profileFormState(),
+    schedule: this.profileFormState().schedule ?? this.defaultSchedule
+  };
+
+  try {
+    await this.profile.saveProfile(user.uid, profile);
+    alert("Perfil salvo com sucesso!");
+  } catch (err) {
+    console.error("Erro ao salvar perfil:", err);
+    alert("Erro ao salvar perfil.");
+  }
 }
     public async getUserData(uid: string) {
       const userRef = doc(this.db, 'users', uid);
@@ -338,7 +355,7 @@ public profileFormState = signal({
       console.error('Erro ao adicionar produto:', e);
       alert('Erro ao adicionar produto. Veja console.');
     }}
-
+    
   public async toggleProductActive(productId?: string, current?: boolean) {
     if (!productId) return;
     try {

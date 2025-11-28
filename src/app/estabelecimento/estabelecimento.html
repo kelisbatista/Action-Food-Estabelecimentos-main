@@ -99,12 +99,10 @@
     <div *ngIf="currentView() === 'orders'" class="space-y-6">
       <h1 class="text-2xl font-bold">Pedidos</h1>
       <div class="flex space-x-2 mb-4">
-        <button 
-          *ngFor="let status of ['TODOS', 'PENDENTE', 'CONFIRMADO', 'PREPARANDO', 'CONCLUÍDO', 'CANCELADO']" 
-          (click)="filterOrders('TODOS')" 
-          [class]="currentOrderFilter() === status ? 'bg-blue-500 text-white' : 'bg-gray-200'" 
-          class="px-4 py-2 rounded">
-          {{ status }} ({{ getOrderCountByStatus('TODOS') }})
+        <button *ngFor="let status of statuses" (click)="filterOrders(status)"
+          [ngClass]="{'px-4 py-2 rounded': true,'bg-blue-500 text-white': currentOrderFilter() === status,
+            'bg-gray-200': currentOrderFilter() !== status}">
+          {{ status }} ({{ getOrderCountByStatus(status) }})
         </button>
       </div>
       <div class="space-y-4">
@@ -183,7 +181,7 @@
               </div>
             </div>
           </div>
-          <button type="button" class="bg-blue-500 text-white px-4 py-2 rounded">Salvar Perfil</button>
+          <button type="button" class="bg-blue-500 text-white px-4 py-2 rounded"(click)="saveProfile()">Salvar Perfil</button>
         </form>
       </div>
     </div>

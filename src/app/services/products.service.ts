@@ -21,7 +21,7 @@ constructor(@Inject(FirebaseService) private firebase: FirebaseService) {}
 
 private productsCollectionPath(userId: string) {
 // Estrutura: establishments/{userId}/products
-return `establishments/${userId}/products`;
+return `estabelecimentos/${userId}/products`;
 }
 
 
