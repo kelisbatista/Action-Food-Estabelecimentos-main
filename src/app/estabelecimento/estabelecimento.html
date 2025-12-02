@@ -61,15 +61,15 @@
         <form (ngSubmit)="addProduct()" class="space-y-4">
           <div>
             <label class="block text-sm font-medium">Nome</label>
-            <input type="text" [(ngModel)]="newProduct.name" name="name" class="w-full p-2 border rounded" required>
+            <input type="text" [(ngModel)]="newProduct.nome" name="name" class="w-full p-2 border rounded" required>
           </div>
           <div>
             <label class="block text-sm font-medium">Descrição</label>
-            <textarea [(ngModel)]="newProduct.description" name="description" class="w-full p-2 border rounded"></textarea>
+            <textarea [(ngModel)]="newProduct.descricao" name="description" class="w-full p-2 border rounded"></textarea>
           </div>
           <div>
             <label class="block text-sm font-medium">Preço</label>
-            <input type="number" [(ngModel)]="newProduct.price" name="price" class="w-full p-2 border rounded" required>
+            <input type="number" [(ngModel)]="newProduct.preco" name="price" class="w-full p-2 border rounded" required>
           </div>
           <div>
             <label class="block text-sm font-medium">URL da Imagem</label>
@@ -83,9 +83,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div *ngFor="let product of products()" class="border p-4 rounded flex justify-between items-center">
             <div>
-              <h3 class="font-semibold">{{ product.name }}</h3>
-              <p>{{ product.description }}</p>
-              <p>R$ {{ product.price }}</p>
+              <h3 class="font-semibold">{{ product.nome }}</h3>
+              <p>{{ product.descricao }}</p>
+              <p>R$ {{ product.preco }}</p>
               <img *ngIf="product.imageUrl" [src]="product.imageUrl" alt="Imagem do produto" class="w-16 h-16 mt-2">
             </div>
             <button  (click)="deleteProduct(uid, product.id)"

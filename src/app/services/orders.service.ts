@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { FirebaseService } from './firebase.service';
 
 
-export type OrderStatus = 'PENDENTE' | 'CONFIRMADO' | 'PREPARANDO' | 'CONCLUÍDO' | 'CANCELADO';
-export type PaymentStatus = 'AGUARDANDO' | 'APROVADO' | 'RECUSADO';
+export type OrderStatus = 'pendente' | 'confirmado' | 'preparando' | 'concluido' | 'cancelado';
+export type PaymentStatus = 'aguardando' | 'aprovado' | 'recusado';
 
 
 export interface Order {
@@ -25,7 +25,7 @@ constructor(private firebase: FirebaseService) {}
 
 
 private ordersCollectionPath(userId: string) {
-return `orders/${userId}`;
+return `usuarios/${userId}`;
 }
 
 
@@ -57,8 +57,8 @@ const orderRef = doc(db, this.ordersCollectionPath(userId), orderId);
 
 
 const update: Partial<Order> = { status: newStatus };
-if (newStatus === 'CONFIRMADO' || newStatus === 'CONCLUÍDO') {
-update.paymentStatus = 'APROVADO';
+if (newStatus === 'confirmado' || newStatus === 'concluido') {
+update.paymentStatus = 'aprovado';
 }
 
 

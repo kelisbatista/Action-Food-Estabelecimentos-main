@@ -16,7 +16,7 @@ export interface ScheduleDay { open: string; close: string; isClosed: boolean; }
 export type WeekSchedule = Record<string, ScheduleDay>;
 
 
-interface Product { id?: string; name: string; description: string; price: number; isActive: boolean; imageUrl?: string;}
+interface Product { id?: string; nome: string; descricao: string; preco: number; isActive: boolean; imageUrl?: string;}
 
 type OrderStatus = 'PENDENTE' | 'CONFIRMADO' | 'PREPARANDO' | 'CONCLUÍDO' | 'CANCELADO';
 type PaymentStatus = 'AGUARDANDO' | 'APROVADO' | 'RECUSADO';
@@ -111,11 +111,10 @@ export class Estabelecimento implements OnInit {
   get uid(): string | null {
   return this.currentUser()?.uid ?? null;
 }
-
   public newProduct = {
-    name: '',
-    description: '',
-    price: null as number | null,
+    nome: '',
+    descricao: '',
+    preco: null as number | null,
     imageUrl: ''
   };
 
@@ -328,9 +327,9 @@ public profileFormState = signal({
             const d = docSnap.data() as Partial<Product>;
             list.push({
               id: docSnap.id,
-              name: d.name ?? '',
-              description: d.description ?? '',
-              price: d.price ?? 0,
+              nome: d.nome ?? '',
+              descricao: d.descricao ?? '',
+              preco: d.preco ?? 0,
               isActive: d.isActive ?? true,
               imageUrl: d.imageUrl ?? ''
             });
@@ -350,19 +349,18 @@ public profileFormState = signal({
 }
   public async addProduct() {
     try {
-      if (!this.newProduct.name || this.newProduct.price == null) {
+      if (!this.newProduct.nome || this.newProduct.preco == null) {
         alert('Nome e preço são obrigatórios.');
         return;
       }
       const productsCol = this.getCollectionRef('produtos');
       await addDoc(productsCol as any, {
-        name: this.newProduct.name,
-        description: this.newProduct.description,
-        price: this.newProduct.price,
-        isActive: true,
-        imageUrl: this.newProduct.imageUrl || `https://placehold.co/100x100/A0A0A0/FFFFFF?text=${encodeURIComponent(this.newProduct.name.substring(0,3))}`
+        nome: this.newProduct.nome,
+        descricao: this.newProduct.descricao,
+        preco: this.newProduct.preco,
+        imageUrl: this.newProduct.imageUrl || `https://placehold.co/100x100/A0A0A0/FFFFFF?text=${encodeURIComponent(this.newProduct.nome.substring(0,3))}`
       });
-      this.newProduct = { name: '', description: '', price: null, imageUrl: '' };
+      this.newProduct = { nome: '', descricao: '', preco: null, imageUrl: '' };
       console.log('Produto adicionado.');
     } catch (e) {
       console.error('Erro ao adicionar produto:', e);
