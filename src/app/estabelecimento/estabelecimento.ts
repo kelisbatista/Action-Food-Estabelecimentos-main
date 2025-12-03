@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, NgZone } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, QuerySnapshot, orderBy, updateDoc, serverTimestamp, Firestore, DocumentData, DocumentSnapshot} from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, QuerySnapshot, orderBy, updateDoc, serverTimestamp, Firestore, DocumentData, DocumentSnapshot, where} from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signOut, Auth,User } from 'firebase/auth';
 import { EstablishmentProfile } from '../services/profile.service';
 import { ProfileService } from '../services/profile.service';
@@ -209,7 +209,7 @@ private getProductsCollectionRef(collectionName: string) {
   private getCollectionRef(collectionName: string) {
   const user = this.ensureUserOrThrow();
   const base = this.getEstablishmentsBasePathForUser(user.uid);
-  return collection(this.db, `${collectionName}`);
+  return collection(this.db, `${base}/${collectionName}`);
 }
 
   private getDocRef(collectionName: string, docId: string) {
@@ -396,46 +396,62 @@ async deleteProduct(userId: string | null, productId?: string) {
   }
 }
 
-  private listenForOrders(): Promise<void> {
+private listenForOrders(): Promise<void> {
   return new Promise((resolve) => {
     try {
       if (this.unsubOrders) {
         this.unsubOrders();
         this.unsubOrders = null;
       }
-      const ordersCol = this.getCollectionRef('orders');
-      const qOrders = query(ordersCol, orderBy('createdAt', 'desc'));
-      this.unsubOrders = onSnapshot(
-        qOrders,
-        (snap: QuerySnapshot) => {
-          const list: Orders[] = snap.docs.map((doc) => {
-            const data = doc.data() as Partial<Orders>;
-            return {
-              id: doc.id,
-              customerName: data.customerName ?? '',
-              description: data.description ?? '',
-              price: data.price ?? 0,
-              isActive: data.isActive ?? true,
-              quantity: data.quantity ?? 1,
-              items: data.items ?? [],
-              total: data.total ?? 0,
-              status: data.status ?? 'pendente',
-              createdAt: data.createdAt ?? null
-            };
-          });
-          this.allOrders.set(list);
-          resolve();},
-        (err) => {
-          console.error('Erro no snapshot orders:', err);
-          resolve();
-        }
+
+      const user = this.ensureUserOrThrow();
+      const estabId = user.uid; // ID do estabelecimento logado
+
+      const ordersCol = collection(this.db, 'orders'); 
+      const qOrders = query(
+      ordersCol,
+      where('estabId', '==', estabId)
       );
+
+      this.unsubOrders = onSnapshot(
+  qOrders,
+  (snap: QuerySnapshot<DocumentData>) => {
+    const list: Orders[] = snap.docs.map(doc => {
+      const data = doc.data() as Partial<Orders>; // pegar dados parciais
+      return {
+        id: doc.id,
+        customerName: data.customerName ?? 'Cliente sem nome',
+        items: data.items ?? [],
+        total: data.total ?? 0,
+        status: data.status ?? 'pendente',
+        paymentStatus: data.paymentStatus ?? 'aprovado',
+        createdAt: data.createdAt ?? null,
+        description: data.description ?? '',
+        isActive: data.isActive ?? true,
+        price: data.price ?? 0,
+        quantity: data.quantity ?? 0,
+      };
+    });
+
+    this.allOrders.set(list);
+    console.log('Pedidos carregados:', list);
+    resolve();
+  },
+  (err) => {
+    console.error('Erro no snapshot orders:', err);
+    resolve();
+  }
+);
+
     } catch (err) {
       console.error('Erro ao iniciar listener de orders:', err);
       resolve();
     }
   });
 }
+
+
+
   public async updateOrderStatus(orderId: string | undefined, newStatus: OrderStatus) {
     if (!orderId) return;
     try {
