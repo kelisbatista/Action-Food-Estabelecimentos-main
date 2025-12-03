@@ -1,16 +1,13 @@
-import { Component, OnInit, Signal, signal, computed, NgZone } from '@angular/core';
+import { Component, OnInit, signal, computed, NgZone } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, QuerySnapshot, orderBy, updateDoc, serverTimestamp, Firestore, DocumentData, DocumentSnapshot} from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signOut, Auth,User } from 'firebase/auth';
 import { EstablishmentProfile } from '../services/profile.service';
 import { ProfileService } from '../services/profile.service';
 import { FirebaseService } from '../services/firebase.service';
-import { UserData } from '../services/firebase.service';
 import { ProductsService } from '../services/products.service';
-import { getStorage, ref, getDownloadURL, uploadBytes } from 'firebase/storage';
 
 export interface ScheduleDay { open: string; close: string; isClosed: boolean; }
 export type WeekSchedule = Record<string, ScheduleDay>;
@@ -18,8 +15,8 @@ export type WeekSchedule = Record<string, ScheduleDay>;
 
 interface Product { id?: string; nome: string; descricao: string; preco: number; isActive: boolean; imageUrl?: string;}
 
-type OrderStatus = 'PENDENTE' | 'CONFIRMADO' | 'PREPARANDO' | 'CONCLUÍDO' | 'CANCELADO';
-type PaymentStatus = 'AGUARDANDO' | 'APROVADO' | 'RECUSADO';
+type OrderStatus = 'pendente' | 'concluido' | 'preparando' | 'cancelado';
+type PaymentStatus = 'aprovado' | 'aprovado' | 'recusado';
 
 interface Orders { id?: string; customerName: string; items?: { name: string; quantity: number; price: number }[]; total?: number;
 status?: OrderStatus; paymentStatus?: PaymentStatus; createdAt?: any; description?: string; isActive?: boolean; 
@@ -80,10 +77,7 @@ export class Estabelecimento implements OnInit {
     console.error('Erro inicializando cliente Firebase:', err);
   }
 }
-  private appId = (window as any)['__app_id'] ?? 'default-app-id';
-
-  private firebaseConfig = {
-  };
+  
   
   private db!: Firestore;
   private auth!: Auth;
@@ -95,13 +89,12 @@ export class Estabelecimento implements OnInit {
   public allOrders = signal<Orders[]>([]);
   public Profile = signal<EstablishmentProfile | null>(null);
   public profileState = signal<EstablishmentProfile | null>(null);
-  public statuses: (OrderStatus | 'TODOS')[] = [
-  'TODOS',
-  'PENDENTE',
-  'CONFIRMADO',
-  'PREPARANDO',
-  'CONCLUÍDO',
-  'CANCELADO'
+  public statuses: (OrderStatus | 'todos')[] = [
+  'todos',
+  'pendente',
+  'preparando',
+  'concluido',
+  'cancelado'
 ];
 
   user: any = null;
@@ -118,15 +111,15 @@ export class Estabelecimento implements OnInit {
     imageUrl: ''
   };
 
-  public currentOrderFilter = signal<OrderStatus | 'TODOS'>('PENDENTE');
+  public currentOrderFilter = signal<OrderStatus | 'todos'>('pendente');
   public activeProductCount = computed(() => this.products().filter(p => p.isActive).length);
   public inactiveProductCount = computed(() => this.products().filter(p => !p.isActive).length);
-  public pendingOrders = computed(() => this.allOrders().filter(o => o.status === 'PENDENTE'));
+  public pendingOrders = computed(() => this.allOrders().filter(o => o.status === 'pendente'));
   public newOrderCount = computed(() => this.pendingOrders().length);
   public filteredOrders = computed(() => {
     const filter = this.currentOrderFilter();
     const orders = this.allOrders();
-    if (filter === 'TODOS') return orders;
+    if (filter === 'todos') return orders;
     return orders.filter(o => o.status === filter);
   });
 
@@ -206,10 +199,17 @@ public profileFormState = signal({
   private getEstablishmentsBasePathForUser(userId: string) {
   return `estabelecimentos/${userId}`;
 }
-  private getCollectionRef(collectionName: string) {
+
+private getProductsCollectionRef(collectionName: string) {
   const user = this.ensureUserOrThrow();
   const base = this.getEstablishmentsBasePathForUser(user.uid);
   return collection(this.db, `${base}/${collectionName}`);
+}
+
+  private getCollectionRef(collectionName: string) {
+  const user = this.ensureUserOrThrow();
+  const base = this.getEstablishmentsBasePathForUser(user.uid);
+  return collection(this.db, `${collectionName}`);
 }
 
   private getDocRef(collectionName: string, docId: string) {
@@ -314,11 +314,11 @@ public profileFormState = signal({
 
  private listenForProducts(): Promise<void> {
   return new Promise((resolve) => {
-    try {
+    try { 
       if (this.unsubProducts) {
         this.unsubProducts();
         this.unsubProducts = null;}
-      const productsCol = this.getCollectionRef('produtos'); 
+      const productsCol = this.getProductsCollectionRef('produtos'); 
       this.unsubProducts = onSnapshot(
         productsCol,
         (snap: QuerySnapshot<DocumentData>) => {
@@ -419,8 +419,7 @@ async deleteProduct(userId: string | null, productId?: string) {
               quantity: data.quantity ?? 1,
               items: data.items ?? [],
               total: data.total ?? 0,
-              status: data.status ?? 'PENDENTE',
-              paymentStatus: data.paymentStatus ?? 'AGUARDANDO',
+              status: data.status ?? 'pendente',
               createdAt: data.createdAt ?? null
             };
           });
@@ -442,43 +441,31 @@ async deleteProduct(userId: string | null, productId?: string) {
     try {
       const user = this.ensureUserOrThrow();
       const orderDoc = doc(this.db, `${this.getEstablishmentsBasePathForUser(user.uid)}/orders/${orderId}`);
-      const updatePayload: Partial<Orders> = { status: newStatus };
-      if (newStatus === 'CONFIRMADO' || newStatus === 'CONCLUÍDO') updatePayload.paymentStatus = 'APROVADO';
-      await updateDoc(orderDoc as any, updatePayload);
       console.log(`Pedido ${orderId} atualizado para ${newStatus}`);
     } catch (e) {
       console.error('Erro ao atualizar pedido:', e);
     }
   }
-  public filterOrders(status: OrderStatus | 'TODOS') { this.currentOrderFilter.set(status); }
-  public getOrderCountByStatus(status: OrderStatus | 'TODOS'): number {
-    if (status === 'TODOS') return this.allOrders().length;
+  public filterOrders(status: OrderStatus | 'todos') { this.currentOrderFilter.set(status); }
+  public getOrderCountByStatus(status: OrderStatus | 'todos'): number {
+    if (status === 'todos') return this.allOrders().length;
     return this.allOrders().filter(o => o.status === status).length;
   }
   public getOrderStatusBadgeClass(status?: OrderStatus): string {
     switch (status) {
-      case 'PENDENTE': return 'bg-red-500 text-white';
-      case 'CONFIRMADO': return 'bg-blue-500 text-white';
-      case 'PREPARANDO': return 'bg-yellow-500 text-gray-800';
-      case 'CONCLUÍDO': return 'bg-green-500 text-white';
-      case 'CANCELADO': return 'bg-gray-400 text-white';
+      case 'pendente': return 'bg-red-500 text-white';
+      case 'preparando': return 'bg-yellow-500 text-gray-800';
+      case 'concluido': return 'bg-green-500 text-white';
+      case 'cancelado': return 'bg-gray-400 text-white';
       default: return 'bg-gray-200 text-gray-800';
     }
   }
-  public getPaymentStatusClass(status?: PaymentStatus): string {
-    switch (status) {
-      case 'APROVADO': return 'text-green-600 font-bold';
-      case 'AGUARDANDO': return 'text-yellow-600 font-bold';
-      case 'RECUSADO': return 'text-red-600 font-bold';
-      default: return 'text-gray-500';
-    }
-  }
+
   public getOrderCardClass(status?: OrderStatus): string {
     switch (status) {
-      case 'PENDENTE': return 'border-red-500';
-      case 'CONFIRMADO': return 'border-blue-500';
-      case 'PREPARANDO': return 'border-yellow-500';
-      case 'CONCLUÍDO': return 'border-green-500';
+      case 'pendente': return 'border-red-500';
+      case 'preparando': return 'border-yellow-500';
+      case 'concluido': return 'border-green-500';
       default: return 'border-gray-300';
     }
   }

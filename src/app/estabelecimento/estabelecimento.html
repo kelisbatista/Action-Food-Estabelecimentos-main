@@ -2,7 +2,8 @@
   <!-- Sidebar Menu -->
   <div class="w-64 bg-gray-800 text-white p-4">
    <h2 class="text-xl font-bold mb-6 flex items-center gap-3" 
-    *ngIf="profileFormState() as profile"> {{ profile.name || 'Estabelecimento' }}
+    *ngIf="profileFormState() as profile"> {{ profile.name || user?.uid }}
+      <img *ngIf="profile.logoUrl" [src]="profile.logoUrl" alt="Logo" class="w-10 h-10 rounded-full object-cover">
   </h2>
     <button 
       [class]="getViewClass('dashboard')" 
@@ -119,10 +120,10 @@
               <p *ngIf="order.createdAt">Criado em: {{ order.createdAt.toDate() | date:'short' }}</p>
             </div>
             <div class="space-x-2">
-              <button *ngIf="order.status !== 'CONCLUÍDO' && order.status !== 'CANCELADO'" (click)="updateOrderStatus(order.id, 'CONFIRMADO')" class="bg-blue-500 text-white px-3 py-1 rounded">Confirmar</button>
-              <button *ngIf="order.status === 'CONFIRMADO'" (click)="updateOrderStatus(order.id, 'PREPARANDO')" class="bg-yellow-500 text-white px-3 py-1 rounded">Preparar</button>
-              <button *ngIf="order.status === 'PREPARANDO'" (click)="updateOrderStatus(order.id, 'CONCLUÍDO')" class="bg-green-500 text-white px-3 py-1 rounded">Concluir</button>
-              <button *ngIf="order.status !== 'CANCELADO'" (click)="updateOrderStatus(order.id, 'CANCELADO')" class="bg-red-500 text-white px-3 py-1 rounded">Cancelar</button>
+              <button *ngIf="order.status !== 'concluido' && order.status !== 'cancelado'" (click)="updateOrderStatus(order.id, 'preparando')" class="bg-blue-500 text-white px-3 py-1 rounded">Confirmar</button>
+              <button *ngIf="order.status === 'concluido'" (click)="updateOrderStatus(order.id, 'preparando')" class="bg-yellow-500 text-white px-3 py-1 rounded">Preparar</button>
+              <button *ngIf="order.status === 'preparando'" (click)="updateOrderStatus(order.id, 'concluido')" class="bg-green-500 text-white px-3 py-1 rounded">Concluir</button>
+              <button *ngIf="order.status !== 'cancelado'" (click)="updateOrderStatus(order.id, 'cancelado')" class="bg-red-500 text-white px-3 py-1 rounded">Cancelar</button>
             </div>
           </div>
         </div>

@@ -11,10 +11,9 @@ export type PaymentStatus = 'aguardando' | 'aprovado' | 'recusado';
 export interface Order {
 id?: string;
 customerName: string;
-items: { name: string; quantity: number; price: number }[];
-total: number;
+items: { nome: string; qty: string; preco: string }[];
+total: string;
 status: OrderStatus;
-paymentStatus: PaymentStatus;
 createdAt?: any;
 }
 
@@ -24,15 +23,15 @@ export class OrdersService {
 constructor(private firebase: FirebaseService) {}
 
 
-private ordersCollectionPath(userId: string) {
-return `usuarios/${userId}`;
+private ordersCollectionPath() {
+return `orders`;
 }
 
 
 listenForOrders(userId: string): Observable<Order[]> {
 return new Observable<Order[]>(subscriber => {
 const db = this.firebase.getDb();
-const colRef = collection(db, this.ordersCollectionPath(userId));
+const colRef = collection(db, this.ordersCollectionPath());
 const unsub = onSnapshot(colRef, snap => {
 const list = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
 subscriber.next(list);
@@ -46,22 +45,14 @@ return () => unsub();
 
 async addOrder(userId: string, order: Omit<Order, 'id'>) {
 const db = this.firebase.getDb();
-const colRef = collection(db, this.ordersCollectionPath(userId));
+const colRef = collection(db, this.ordersCollectionPath());
 return await addDoc(colRef, order as any);
 }
 
 
 async updateOrderStatus(userId: string, orderId: string, newStatus: Order['status']) {
 const db = this.firebase.getDb();
-const orderRef = doc(db, this.ordersCollectionPath(userId), orderId);
+const orderRef = doc(db, this.ordersCollectionPath(), orderId);
+await updateDoc(orderRef, { status: newStatus });
 
-
-const update: Partial<Order> = { status: newStatus };
-if (newStatus === 'confirmado' || newStatus === 'concluido') {
-update.paymentStatus = 'aprovado';
-}
-
-
-return await updateDoc(orderRef, update as any);
-}
-}
+} }
