@@ -4,17 +4,25 @@ import { Observable } from 'rxjs';
 import { FirebaseService } from './firebase.service';
 
 
-export type OrderStatus = 'pendente' | 'confirmado' | 'preparando' | 'concluido' | 'cancelado';
+export type Status_pedido = 'pendente' | 'confirmado' | 'preparando' | 'concluido' | 'cancelado';
 export type PaymentStatus = 'aguardando' | 'aprovado' | 'recusado';
 
 
 export interface Order {
 id?: string;
-customerName: string;
-items: { nome: string; qty: string; preco: string }[];
+userId?: string;
+customerNome: string;
+items: { nome: string; qty: string; preco: number }[];
 total: string;
-status: OrderStatus;
+status_pedido: Status_pedido;
 createdAt?: any;
+}
+
+export interface PartialOrders {
+  id?: string;
+  userId?: string;
+  customerName?: string;
+  [key: string]: any; // permite outros campos sem erro
 }
 
 
@@ -50,9 +58,9 @@ return await addDoc(colRef, order as any);
 }
 
 
-async updateOrderStatus(userId: string, orderId: string, newStatus: Order['status']) {
+async updateOrderStatus(userId: string, orderId: string, newStatus_pedido: Order['status_pedido']) {
 const db = this.firebase.getDb();
 const orderRef = doc(db, this.ordersCollectionPath(), orderId);
-await updateDoc(orderRef, { status: newStatus });
+await updateDoc(orderRef, { status: newStatus_pedido });
 
 } }

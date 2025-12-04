@@ -2,7 +2,7 @@
   <!-- Sidebar Menu -->
   <div class="w-64 bg-gray-800 text-white p-4">
    <h2 class="text-xl font-bold mb-6 flex items-center gap-3" 
-    *ngIf="profileFormState() as profile"> {{ profile.name || user?.uid }}
+    *ngIf="profileFormState() as profile"> {{ profile.nome || user?.uid }}
       <img *ngIf="profile.logoUrl" [src]="profile.logoUrl" alt="Logo" class="w-10 h-10 rounded-full object-cover">
   </h2>
     <button 
@@ -66,7 +66,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium">Descrição</label>
-            <textarea [(ngModel)]="newProduct.descricao" name="description" class="w-full p-2 border rounded"></textarea>
+            <textarea [(ngModel)]="newProduct.descricao" nome="description" class="w-full p-2 border rounded"></textarea>
           </div>
           <div>
             <label class="block text-sm font-medium">Preço</label>
@@ -74,7 +74,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium">Quantidade</label>
-            <input type="text" [(ngModel)]="newProduct.quantity" name="imageUrl" class="w-full p-2 border rounded">
+            <input type="text" [(ngModel)]="newProduct.quantidade" name="quantidade" class="w-full p-2 border rounded">
           </div>
           <div>
             <label class="block text-sm font-medium">URL da Imagem</label>
@@ -91,7 +91,7 @@
               <h3 class="font-semibold">{{ product.nome }}</h3>
               <p>{{ product.descricao }}</p>
               <p>R$ {{ product.preco }}</p>
-              <p>{{ product.quantity }}</p>
+              <p>{{ product.quantidade }}</p>
               <img *ngIf="product.imageUrl" [src]="product.imageUrl" alt="Imagem do produto" class="w-16 h-16 mt-2">
             </div>
             <button  (click)="deleteProduct(uid, product.id)"
@@ -107,34 +107,48 @@
     <div *ngIf="currentView() === 'orders'" class="space-y-6">
       <h1 class="text-2xl font-bold">Pedidos</h1>
       <div class="flex space-x-2 mb-4">
-        <button *ngFor="let status of statuses" (click)="filterOrders(status)"
-          [ngClass]="{'px-4 py-2 rounded': true,'bg-blue-500 text-white': currentOrderFilter() === status,
-            'bg-gray-200': currentOrderFilter() !== status}">
-          {{ status }} ({{ getOrderCountByStatus(status) }})
+        <button *ngFor="let status_pedido of statuses" (click)="filterOrders(status_pedido)"
+          [ngClass]="{'px-4 py-2 rounded': true,'bg-blue-500 text-white': currentOrderFilter() === status_pedido,
+            'bg-gray-200': currentOrderFilter() !== status_pedido}">
+          {{ status_pedido }} ({{ getOrderCountByStatus(status_pedido) }})
         </button>
       </div>
       <div class="space-y-4">
-        <div *ngFor="let order of filteredOrders()" [ngClass]="getOrderCardClass(order.status)" class="bg-white p-4 rounded-lg shadow border-l-4">
+        <div *ngFor="let order of filteredOrders()" [ngClass]="getOrderCardClass(order.status_pedido)" class="bg-white p-4 rounded-lg shadow border-l-4">
           <div class="flex justify-between items-start">
             <div>
               <h3 class="font-semibold">{{ order.customerName }}</h3>
-              <p *ngIf="order.description">{{ order.description }}</p>
+              <p *ngIf="order.descricao">{{ order.descricao }}</p>
               <p>Total: R$ {{ order.total }}</p>
-              <p>Status: <span class="getOrderStatusBadgeClass(order.status)" class="px-2 py-1 rounded text-sm">{{ order.status }}</span></p>
+              <p>Status: <span class="getOrderStatusBadgeClass(order.status_pedido)" class="px-2 py-1 rounded text-sm">{{ order.status_pedido }}</span></p>
               <p>Pagamento: <span class="getPaymentStatusClass(order.paymentStatus)">{{ order.paymentStatus }}</span></p>
               <p *ngIf="order.createdAt">Criado em: {{ order.createdAt.toDate() | date:'short' }}</p>
             </div>
             <div class="space-x-2">
-              <button *ngIf="order.status !== 'concluido' && order.status !== 'cancelado'" (click)="updateOrderStatus(order.id, 'preparando')" class="bg-blue-500 text-white px-3 py-1 rounded">Confirmar</button>
-              <button *ngIf="order.status === 'concluido'" (click)="updateOrderStatus(order.id, 'preparando')" class="bg-yellow-500 text-white px-3 py-1 rounded">Preparar</button>
-              <button *ngIf="order.status === 'preparando'" (click)="updateOrderStatus(order.id, 'concluido')" class="bg-green-500 text-white px-3 py-1 rounded">Concluir</button>
-              <button *ngIf="order.status !== 'cancelado'" (click)="updateOrderStatus(order.id, 'cancelado')" class="bg-red-500 text-white px-3 py-1 rounded">Cancelar</button>
-            </div>
+              <button *ngIf="order.status_pedido === 'pendente'"
+        (click)="updateOrderStatus(order.id, 'preparando')"
+        class="bg-blue-500 text-white px-3 py-1 rounded">
+  Confirmar
+</button>
+
+<button *ngIf="order.status_pedido === 'preparando'"
+        (click)="updateOrderStatus(order.id, 'concluido')"
+        class="bg-green-500 text-white px-3 py-1 rounded">
+  Concluir
+</button>
+
+<button *ngIf="order.status_pedido !== 'cancelado' && order.status_pedido !== 'concluido'"
+        (click)="updateOrderStatus(order.id, 'cancelado')"
+        class="bg-red-500 text-white px-3 py-1 rounded">
+  Cancelar
+</button>
+
           </div>
         </div>
       </div>
     </div>
 
+    
     <!-- Profile View -->
     <div *ngIf="currentView() === 'profile'" class="space-y-6">
       <h1 class="text-2xl font-bold">Perfil</h1>
@@ -144,23 +158,15 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium">Nome</label>
-              <input type="text" [(ngModel)]="profileFormState().name" name="name" class="w-full p-2 border rounded">
-            </div>
-            <div>
-              <label class="block text-sm font-medium">Endereço</label>
-              <input type="text" [(ngModel)]="profileFormState().address" name="address" class="w-full p-2 border rounded">
+              <input type="text" [(ngModel)]="profileFormState().nome" name="name" class="w-full p-2 border rounded">
             </div>
             <div>
               <label class="block text-sm font-medium">Telefone</label>
-              <input type="text" [(ngModel)]="profileFormState().phone" name="phone" class="w-full p-2 border rounded">
+              <input type="text" [(ngModel)]="profileFormState().telefone" name="phone" class="w-full p-2 border rounded">
             </div>
             <div>
               <label class="block text-sm font-medium">Email</label>
               <input type="email" [(ngModel)]="profileFormState().email" name="email" class="w-full p-2 border rounded">
-            </div>
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium">Descrição</label>
-              <textarea [(ngModel)]="profileFormState().description" name="description" class="w-full p-2 border rounded"></textarea>
             </div>
             <div class="md:col-span-2">
               <label class="block text-sm font-medium">URL do Logo</label>

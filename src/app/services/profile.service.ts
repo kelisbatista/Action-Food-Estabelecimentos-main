@@ -7,7 +7,7 @@ import { WeekSchedule } from '../estabelecimento/estabelecimento';
 
 export interface ScheduleDay { day: string; open: string; close: string; isClosed: boolean }
 export interface EstablishmentProfile {
-name: string; address: string; phone: string; email: string; description: string; logoUrl: string; schedule: WeekSchedule;
+nome: string; telefone: string; email: string; logoUrl: string; schedule: WeekSchedule;
 }
 
 

@@ -10,6 +10,7 @@ descricao: string;
 preco: number;
 isActive: boolean;
 imageUrl?: string;
+quantidade: number;
 }
 
 
