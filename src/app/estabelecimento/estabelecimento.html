@@ -73,6 +73,10 @@
             <input type="number" [(ngModel)]="newProduct.preco" name="price" class="w-full p-2 border rounded" required>
           </div>
           <div>
+            <label class="block text-sm font-medium">Quantidade</label>
+            <input type="text" [(ngModel)]="newProduct.quantity" name="imageUrl" class="w-full p-2 border rounded">
+          </div>
+          <div>
             <label class="block text-sm font-medium">URL da Imagem</label>
             <input type="text" [(ngModel)]="newProduct.imageUrl" name="imageUrl" class="w-full p-2 border rounded">
           </div>
@@ -87,6 +91,7 @@
               <h3 class="font-semibold">{{ product.nome }}</h3>
               <p>{{ product.descricao }}</p>
               <p>R$ {{ product.preco }}</p>
+              <p>{{ product.quantity }}</p>
               <img *ngIf="product.imageUrl" [src]="product.imageUrl" alt="Imagem do produto" class="w-16 h-16 mt-2">
             </div>
             <button  (click)="deleteProduct(uid, product.id)"
