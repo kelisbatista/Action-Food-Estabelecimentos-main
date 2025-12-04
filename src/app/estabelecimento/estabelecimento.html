@@ -117,7 +117,7 @@
         <div *ngFor="let order of filteredOrders()" [ngClass]="getOrderCardClass(order.status_pedido)" class="bg-white p-4 rounded-lg shadow border-l-4">
           <div class="flex justify-between items-start">
             <div>
-              <h3 class="font-semibold">{{ order.customerName }}</h3>
+              <p class="font-semibold">{{ order.customerName }}</p>
               <p *ngIf="order.descricao">{{ order.descricao }}</p>
               <p>Total: R$ {{ order.total }}</p>
               <p>Status: <span
