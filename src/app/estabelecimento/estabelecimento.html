@@ -120,7 +120,12 @@
               <h3 class="font-semibold">{{ order.customerName }}</h3>
               <p *ngIf="order.descricao">{{ order.descricao }}</p>
               <p>Total: R$ {{ order.total }}</p>
-              <p>Status: <span class="getOrderStatusBadgeClass(order.status_pedido)" class="px-2 py-1 rounded text-sm">{{ order.status_pedido }}</span></p>
+              <p>Status: <span
+                [ngClass]="getOrderStatusBadgeClass(order.status_pedido)"
+                class="px-2 py-1 rounded text-sm inline-block min-w-[90px] text-center"
+              >
+                {{ order.status_pedido }}
+              </span></p>
               <p>Pagamento: <span class="getPaymentStatusClass(order.paymentStatus)">{{ order.paymentStatus }}</span></p>
               <p *ngIf="order.createdAt">Criado em: {{ order.createdAt.toDate() | date:'short' }}</p>
             </div>
